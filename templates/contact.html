@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Contact Us — Mpombo Family Restaurant{% endblock %}
+{% block extra_css %}
+.cta-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  max-width:900px;margin:48px auto 0;padding:0 5%}
+.cta-card{background:white;border-radius:6px;padding:24px;text-align:center;
+  border:1.5px solid var(--cream2);transition:all .3s;display:block;color:var(--text)}
+.cta-card:hover{border-color:var(--clay2);transform:translateY(-4px);
+  box-shadow:0 8px 28px rgba(44,26,14,.1)}
+.cta-card .cic{font-size:30px;display:block;margin-bottom:8px}
+.cta-card strong{display:block;font-size:14px;color:var(--forest);margin-bottom:3px}
+.cta-card span{font-size:12px;color:var(--text3)}
+.contact-layout{display:grid;grid-template-columns:1fr 1.4fr;margin-top:56px}
+.ci-side{background:var(--forest);padding:72px 52px;display:flex;flex-direction:column;justify-content:center}
+.ci-title{font-family:'Yeseva One',serif;font-size:28px;color:var(--cream);margin-bottom:32px}
+.cinfo{display:flex;gap:16px;margin-bottom:28px}
+.cinfo-icon{width:44px;height:44px;border-radius:50%;
+  background:rgba(212,165,64,.12);border:1px solid rgba(212,165,64,.2);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gold2);font-size:16px;flex-shrink:0}
+.cinfo-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:3px}
+.cinfo-val{color:rgba(255,255,255,.72);font-size:14px;line-height:1.5}
+.cinfo-val a{color:rgba(255,255,255,.72);transition:color .3s}
+.cinfo-val a:hover{color:var(--gold2)}
+.hours-head{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold2);margin:28px 0 14px}
+.hour-row{display:flex;justify-content:space-between;font-size:13px;
+  color:rgba(255,255,255,.5);padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.hour-row:last-child{border-bottom:none}
+.hour-open{color:#68D391;font-weight:500}
+.cf-side{background:var(--cream2);padding:72px 56px}
+.cf-title{font-family:'Yeseva One',serif;font-size:32px;color:var(--forest);margin-bottom:5px}
+.cf-title span{color:var(--clay)}
+.cf-sub{font-size:14px;color:var(--text3);margin-bottom:32px}
+.success-box{background:rgba(28,61,46,.1);border:1.5px solid var(--forest3);
+  border-radius:6px;padding:28px;text-align:center;display:none}
+@media(max-width:900px){
+  .cta-cards{grid-template-columns:1fr}
+  .contact-layout{grid-template-columns:1fr}
+  .ci-side{padding:44px 28px}
+  .cf-side{padding:44px 28px}}
+{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <span class="eyebrow">✦ Get In Touch</span>
+  <h1>Contact <span style="color:var(--clay2)">Us</span></h1>
+  <p>Reach out for orders, reservations or any questions.</p>
+</div>
+
+<div class="cta-cards">
+  <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="cta-card" target="_blank">
+    <span class="cic">🛵</span><strong>Order Food</strong><span>Delivery or pickup via WhatsApp</span>
+  </a>
+  <a href="{{ url_for('reserve') }}" class="cta-card">
+    <span class="cic">🍽️</span><strong>Reserve a Table</strong><span>Book your dining experience</span>
+  </a>
+  <a href="tel:{{ config.RESTAURANT_PHONE }}" class="cta-card">
+    <span class="cic">📞</span><strong>Call Us</strong><span>Speak directly with our team</span>
+  </a>
+</div>
+
+<div class="contact-layout">
+  <div class="ci-side">
+    <div class="ci-title">Find Us & Reach Out</div>
+    <div class="cinfo">
+      <div class="cinfo-icon"><i class="fas fa-map-marker-alt"></i></div>
+      <div><div class="cinfo-label">Location</div>
+      <div class="cinfo-val">Opposite Petro Uganda<br>Lyantonde District, Uganda</div></div>
+    </div>
+    <div class="cinfo">
+      <div class="cinfo-icon"><i class="fas fa-phone-alt"></i></div>
+      <div><div class="cinfo-label">Phone</div>
+      <div class="cinfo-val"><a href="tel:{{ config.RESTAURANT_PHONE }}">{{ config.RESTAURANT_PHONE }}</a></div></div>
+    </div>
+    <div class="cinfo">
+      <div class="cinfo-icon"><i class="fab fa-whatsapp"></i></div>
+      <div><div class="cinfo-label">WhatsApp</div>
+      <div class="cinfo-val"><a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" target="_blank">+{{ config.RESTAURANT_WHATSAPP }}</a></div></div>
+    </div>
+    <div class="cinfo">
+      <div class="cinfo-icon"><i class="fas fa-envelope"></i></div>
+      <div><div class="cinfo-label">Email</div>
+      <div class="cinfo-val"><a href="mailto:{{ config.RESTAURANT_EMAIL }}">{{ config.RESTAURANT_EMAIL }}</a></div></div>
+    </div>
+    <div class="hours-head">Opening Hours</div>
+    <div class="hour-row"><span>Monday – Friday</span><span class="hour-open">7:00am – 10:00pm</span></div>
+    <div class="hour-row"><span>Saturday</span><span class="hour-open">7:00am – 11:00pm</span></div>
+    <div class="hour-row"><span>Sunday</span><span class="hour-open">8:00am – 9:00pm</span></div>
+    <div class="hour-row"><span>Delivery Hours</span><span style="color:var(--gold2)">Until 9:00pm daily</span></div>
+  </div>
+
+  <div class="cf-side">
+    <div class="cf-title">Send a <span>Message</span></div>
+    <p class="cf-sub">Fill the form and we'll get back within the hour during operating hours.</p>
+    <div id="contactForm">
+      <div class="form-row">
+        <div class="form-group"><label>Your Name *</label><input type="text" id="cName" placeholder="Nakato Sarah" required></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="cPhone" placeholder="+256 7XX XXX XXX"></div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="cEmail" placeholder="you@example.com"></div>
+      <div class="form-group">
+        <label>Subject</label>
+        <select id="cSubject">
+          <option>General Enquiry</option>
+          <option>Place an Order</option>
+          <option>Make a Reservation</option>
+          <option>Feedback or Complaint</option>
+          <option>Catering / Event</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Your Message *</label><textarea id="cMsg" placeholder="How can we help you today?"></textarea></div>
+      <button onclick="sendMsg()" class="btn btn-clay" style="width:100%;justify-content:center">
+        <i class="fas fa-paper-plane"></i> Send Message
+      </button>
+    </div>
+    <div id="contactSuccess" class="success-box">
+      <div style="font-size:38px;margin-bottom:10px">✅</div>
+      <h3 style="font-family:'Yeseva One',serif;color:var(--forest);margin-bottom:7px">Message Sent!</h3>
+      <p style="color:var(--text2);font-size:14px">Thank you! We'll get back to you very soon.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function sendMsg(){
+  const name=document.getElementById('cName').value.trim();
+  const msg=document.getElementById('cMsg').value.trim();
+  if(!name||!msg){alert('Please fill in your name and message.');return}
+  document.getElementById('contactForm').style.display='none';
+  document.getElementById('contactSuccess').style.display='block';
+}
+</script>
+{% endblock %}

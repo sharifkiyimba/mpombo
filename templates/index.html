@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% block title %}Mpombo Family Restaurant — Authentic Ugandan Food, Lyantonde{% endblock %}
+{% block extra_css %}
+.hero{min-height:100vh;position:relative;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(18,10,5,.88) 0%,rgba(39,90,66,.6) 60%,rgba(18,10,5,.5) 100%),
+    url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1800&q=80') center/cover}
+.hero-bg::after{content:'';position:absolute;bottom:0;left:0;right:0;height:150px;
+  background:linear-gradient(to top,var(--cream),transparent)}
+.hero-content{position:relative;z-index:2;padding:120px 5% 80px;max-width:820px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;
+  font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold2);
+  margin-bottom:22px;animation:fadeUp .8s ease .2s both}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';width:24px;height:1px;background:var(--gold)}
+.hero-title{font-family:'Yeseva One',serif;font-size:clamp(44px,8vw,92px);
+  color:white;line-height:1.02;margin-bottom:20px;animation:fadeUp .8s ease .4s both}
+.hero-title span{color:var(--clay2)}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.72);max-width:540px;
+  line-height:1.75;margin-bottom:40px;animation:fadeUp .8s ease .6s both}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .8s ease .8s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+
+.stats-bar{background:var(--forest);display:grid;grid-template-columns:repeat(4,1fr)}
+.stat-item{padding:28px 20px;text-align:center;border-right:1px solid rgba(255,255,255,.1)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:'Yeseva One',serif;font-size:36px;color:var(--gold2);line-height:1}
+.stat-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:6px}
+
+.featured{padding:88px 5%;max-width:1280px;margin:0 auto}
+.section-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.mcard{background:white;border-radius:6px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(44,26,14,.07);transition:all .4s}
+.mcard:hover{transform:translateY(-8px);box-shadow:0 16px 48px rgba(44,26,14,.14)}
+.mcard-img{height:210px;overflow:hidden;position:relative}
+.mcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.mcard:hover .mcard-img img{transform:scale(1.06)}
+.mcard-badge{position:absolute;top:14px;right:14px;background:var(--clay);color:white;
+  font-size:10px;letter-spacing:1px;padding:3px 10px;border-radius:2px;font-weight:500}
+.mcard-badge.veg{background:var(--forest3)}
+.mcard-body{padding:20px}
+.mcard-cat{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--clay2);margin-bottom:5px}
+.mcard-name{font-family:'Libre Baskerville',serif;font-size:19px;color:var(--forest);margin-bottom:6px}
+.mcard-desc{font-size:13px;color:var(--text3);line-height:1.55;margin-bottom:16px}
+.mcard-foot{display:flex;justify-content:space-between;align-items:center}
+.mcard-price{font-family:'Yeseva One',serif;font-size:20px;color:var(--clay)}
+.mcard-price small{font-family:'Outfit',sans-serif;font-size:12px;color:var(--text3)}
+.add-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--forest);
+  color:white;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .3s}
+.add-btn:hover{background:var(--clay);transform:rotate(90deg)}
+
+.about-strip{display:grid;grid-template-columns:1fr 1fr}
+.about-img{position:relative;overflow:hidden;min-height:500px}
+.about-img img{width:100%;height:100%;object-fit:cover}
+.about-content{background:var(--cream2);padding:72px 56px;display:flex;flex-direction:column;justify-content:center}
+.about-content p{font-size:15px;line-height:1.85;color:var(--text2);margin-bottom:14px}
+.about-feats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.feat{display:flex;align-items:flex-start;gap:12px}
+.feat-icon{width:38px;height:38px;border-radius:50%;background:rgba(192,89,42,.1);
+  display:flex;align-items:center;justify-content:center;color:var(--clay);font-size:14px;flex-shrink:0}
+.feat strong{display:block;font-size:13px;font-weight:600;color:var(--forest);margin-bottom:2px}
+.feat span{font-size:12px;color:var(--text3)}
+
+.specials-section{background:var(--forest);padding:88px 5%;position:relative;overflow:hidden}
+.specials-section::before{content:'';position:absolute;top:-80px;right:-80px;
+  width:380px;height:380px;border-radius:50%;
+  background:radial-gradient(circle,rgba(212,165,64,.07) 0%,transparent 70%)}
+.specials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;
+  margin-top:48px;max-width:1280px;margin-inline:auto}
+.scard{border:1px solid rgba(212,165,64,.15);border-radius:6px;overflow:hidden;transition:all .4s}
+.scard:hover{border-color:rgba(212,165,64,.45);transform:translateY(-4px)}
+.scard-img{height:168px;overflow:hidden}
+.scard-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.scard:hover .scard-img img{transform:scale(1.06)}
+.scard-body{padding:22px}
+.scard-name{font-family:'Yeseva One',serif;font-size:20px;color:var(--cream);margin-bottom:7px}
+.scard-desc{font-size:13px;color:rgba(255,255,255,.48);line-height:1.6;margin-bottom:16px}
+.scard-foot{display:flex;justify-content:space-between;align-items:center}
+.scard-price{font-family:'Yeseva One',serif;font-size:20px;color:var(--gold2)}
+.scard-time{font-size:11px;color:rgba(255,255,255,.3)}
+
+.howto{background:white;padding:88px 5%}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;
+  margin-top:56px;max-width:1100px;margin-inline:auto;position:relative}
+.steps::before{content:'';position:absolute;top:36px;left:12%;right:12%;
+  height:1px;background:var(--clay-pale)}
+.step{text-align:center;position:relative}
+.step-circle{width:72px;height:72px;border-radius:50%;
+  border:2px solid var(--clay);background:white;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;font-size:26px;position:relative;z-index:1}
+.step-title{font-family:'Libre Baskerville',serif;font-size:17px;color:var(--forest);margin-bottom:8px}
+.step-desc{font-size:13px;color:var(--text3);line-height:1.6}
+
+.payments{padding:56px 5%;background:var(--cream2);text-align:center}
+.pay-icons{display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap;margin-top:32px}
+.pay-icon{background:white;border-radius:8px;padding:16px 22px;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  box-shadow:0 2px 12px rgba(44,26,14,.06);font-size:13px;font-weight:500;
+  color:var(--text2);min-width:108px}
+.pay-icon .pi{font-size:26px}
+
+.testimonials{padding:88px 5%;overflow:hidden}
+.ttrack{display:flex;gap:22px;animation:tscroll 32s linear infinite;width:max-content;margin-top:48px}
+.ttrack:hover{animation-play-state:paused}
+@keyframes tscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tcard{background:white;padding:30px;border-radius:6px;width:310px;flex-shrink:0;
+  box-shadow:0 4px 20px rgba(44,26,14,.06)}
+.tcard-stars{color:var(--gold);font-size:13px;letter-spacing:2px;margin-bottom:13px}
+.tcard-text{font-family:'Libre Baskerville',serif;font-style:italic;
+  font-size:15px;color:var(--forest);line-height:1.6;margin-bottom:16px}
+.tcard-auth{display:flex;align-items:center;gap:12px}
+.tcard-avatar{width:38px;height:38px;border-radius:50%;background:var(--clay-pale);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Yeseva One',serif;font-size:16px;color:var(--clay)}
+.tcard-name{font-weight:600;font-size:14px;color:var(--forest)}
+.tcard-loc{font-size:12px;color:var(--text3)}
+
+.cta-banner{padding:76px 5%;background:var(--clay);text-align:center;position:relative;overflow:hidden}
+.cta-banner::before{content:'🇺🇬';position:absolute;left:5%;top:50%;
+  transform:translateY(-50%);font-size:110px;opacity:.07}
+.cta-banner::after{content:'🇺🇬';position:absolute;right:5%;top:50%;
+  transform:translateY(-50%);font-size:110px;opacity:.07}
+.cta-banner h2{font-family:'Yeseva One',serif;font-size:clamp(26px,4vw,46px);
+  color:white;margin-bottom:12px}
+.cta-banner p{color:rgba(255,255,255,.8);font-size:15px;margin-bottom:32px}
+.cta-banner-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+@media(max-width:1024px){
+  .menu-grid,.specials-grid{grid-template-columns:1fr 1fr}
+  .about-strip{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .steps::before{display:none}}
+@media(max-width:700px){
+  .stats-bar{grid-template-columns:1fr 1fr}
+  .menu-grid,.specials-grid{grid-template-columns:1fr}
+  .section-header{flex-direction:column;align-items:flex-start;gap:14px}
+  .about-content{padding:44px 24px}
+  .about-feats{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Lyantonde District · Uganda</div>
+    <h1 class="hero-title">Taste the<br><span>Pearl of Africa</span></h1>
+    <p class="hero-sub">From Luwombo wrapped in banana leaves to freshly grilled Nyama Choma and Uganda's iconic Rolex — every dish carries the soul of our homeland.</p>
+    <div class="hero-actions">
+      <a href="{{ url_for('order') }}" class="btn btn-clay"><i class="fas fa-utensils"></i> Order Now</a>
+      <a href="{{ url_for('menu') }}" class="btn btn-outline-light"><i class="fas fa-book-open"></i> View Menu</a>
+      <a href="{{ url_for('reserve') }}" class="btn btn-gold"><i class="fas fa-calendar"></i> Reserve Table</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">500+</div><div class="stat-label">Happy Customers</div></div>
+  <div class="stat-item"><div class="stat-num">25+</div><div class="stat-label">Ugandan Dishes</div></div>
+  <div class="stat-item"><div class="stat-num">20km</div><div class="stat-label">Delivery Range</div></div>
+  <div class="stat-item"><div class="stat-num">5★</div><div class="stat-label">Community Rating</div></div>
+</div>
+
+<!-- FEATURED MENU -->
+<section class="featured">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">✦ Today's Favourites</span>
+      <h2 class="section-title">Made Fresh, <span>Cooked with Love</span></h2>
+    </div>
+    <a href="{{ url_for('menu') }}" class="btn btn-outline-clay btn-sm">Full Menu →</a>
+  </div>
+  <div class="menu-grid">
+    {% set shown = namespace(count=0) %}
+    {% for cat in menu %}{% for item in cat.dishes %}{% if shown.count < 6 %}
+    <div class="mcard">
+      <div class="mcard-img">
+        <img src="{{ item.img }}" alt="{{ item.name }}" loading="lazy">
+        {% if item.badge %}<span class="mcard-badge {{ 'veg' if item.veg else '' }}">{{ item.badge }}</span>{% endif %}
+      </div>
+      <div class="mcard-body">
+        <div class="mcard-cat">{{ cat.name }}</div>
+        <h3 class="mcard-name">{{ item.name }}</h3>
+        <p class="mcard-desc">{{ item.desc[:88] }}{% if item.desc|length>88 %}...{% endif %}</p>
+        <div class="mcard-foot">
+          <div class="mcard-price">UGX {{ "{:,}".format(item.price) }}<small>/serving</small></div>
+          <button class="add-btn" onclick="quickAdd({{ item.id }},'{{ item.name|e }}',{{ item.price }})" title="Add to order">+</button>
+        </div>
+      </div>
+    </div>
+    {% set shown.count = shown.count + 1 %}{% endif %}{% endfor %}{% endfor %}
+  </div>
+</section>
+
+<!-- ABOUT STRIP -->
+<div class="about-strip">
+  <div class="about-img">
+    <img src="https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=900&q=80" alt="Our restaurant">
+  </div>
+  <div class="about-content">
+    <span class="eyebrow">✦ Our Story</span>
+    <h2 class="section-title">Family, <span>Food & Soul</span></h2>
+    <div style="width:44px;height:3px;background:var(--clay);margin:14px 0 18px"></div>
+    <p>Mpombo Family Restaurant was born from a deep love for Ugandan food and community. Located in Lyantonde District, we bring traditional recipes cooked the way our grandmothers taught us.</p>
+    <p>We source our ingredients from local farmers, support our community, and put the flavours of the Pearl of Africa on your plate every day.</p>
+    <div class="about-feats">
+      <div class="feat"><div class="feat-icon"><i class="fas fa-leaf"></i></div><div><strong>Local Ingredients</strong><span>Fresh from nearby farms</span></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-fire"></i></div><div><strong>Traditional Methods</strong><span>Authentic Ugandan cooking</span></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-motorcycle"></i></div><div><strong>Fast Delivery</strong><span>Up to 20km · UGX 5,000 base</span></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-mobile-alt"></i></div><div><strong>MTN & Airtel MoMo</strong><span>Easy mobile money payment</span></div></div>
+    </div>
+    <a href="{{ url_for('about') }}" class="btn btn-forest">Our Full Story</a>
+  </div>
+</div>
+
+<!-- UGANDAN SPECIALS DARK SECTION -->
+<section class="specials-section">
+  <div style="max-width:1280px;margin:0 auto">
+    <span class="eyebrow" style="color:var(--gold2)">✦ The Heart of Uganda</span>
+    <h2 class="section-title light" style="margin-top:8px">Our <span style="color:var(--clay2)">Traditional</span> Specials</h2>
+  </div>
+  <div class="specials-grid">
+    {% for cat in menu %}{% if cat.name=='Ugandan Specials' %}{% for item in cat.dishes %}
+    <div class="scard">
+      <div class="scard-img"><img src="{{ item.img }}" alt="{{ item.name }}" loading="lazy"></div>
+      <div class="scard-body">
+        <h3 class="scard-name">{{ item.name }}</h3>
+        <p class="scard-desc">{{ item.desc[:95] }}...</p>
+        <div class="scard-foot">
+          <span class="scard-price">UGX {{ "{:,}".format(item.price) }}</span>
+          <span class="scard-time"><i class="fas fa-clock"></i> ~{{ item.prep }} min</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}{% endif %}{% endfor %}
+  </div>
+</section>
+
+<!-- HOW TO ORDER -->
+<section class="howto">
+  <div style="text-align:center;max-width:1100px;margin:0 auto">
+    <span class="eyebrow">✦ Simple Steps</span>
+    <h2 class="section-title" style="text-align:center">Order in <span>4 Easy Steps</span></h2>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-circle">🍌</div><h3 class="step-title">Browse Menu</h3><p class="step-desc">Explore our full Ugandan menu — Luwombo, Grilled Tilapia, Rolex and more.</p></div>
+    <div class="step"><div class="step-circle">🛒</div><h3 class="step-title">Add to Cart</h3><p class="step-desc">Choose dishes, set quantities and pick delivery, pickup or dine in.</p></div>
+    <div class="step"><div class="step-circle">📱</div><h3 class="step-title">Pay via MoMo</h3><p class="step-desc">Pay with MTN Mobile Money, Airtel Money or cash on delivery.</p></div>
+    <div class="step"><div class="step-circle">✅</div><h3 class="step-title">Enjoy!</h3><p class="step-desc">Hot Ugandan food delivered to you. Track your order any time.</p></div>
+  </div>
+</section>
+
+<!-- PAYMENT METHODS -->
+<section class="payments">
+  <span class="eyebrow">✦ We Accept</span>
+  <h2 class="section-title" style="text-align:center;font-size:clamp(22px,3vw,30px)">Easy Payment Options</h2>
+  <div class="pay-icons">
+    <div class="pay-icon"><span class="pi">📱</span>MTN MoMo</div>
+    <div class="pay-icon"><span class="pi">📲</span>Airtel Money</div>
+    <div class="pay-icon"><span class="pi">💵</span>Cash on Delivery</div>
+    <div class="pay-icon"><span class="pi">💳</span>Card Payment</div>
+    <div class="pay-icon"><span class="pi">💬</span>WhatsApp Order</div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div style="text-align:center">
+    <span class="eyebrow">✦ Community Voices</span>
+    <h2 class="section-title" style="text-align:center">Loved Across <span>Lyantonde</span></h2>
+  </div>
+  <div style="overflow:hidden">
+    <div class="ttrack">
+      {% for txt,name,loc in [
+        ("The Luwombo here takes me straight back to my grandmother's kitchen. Absolutely divine.","Nakato S.","Lyantonde"),
+        ("Best Rolex in the whole district! Always fresh, always hot, always delicious.","Ssekamanya M.","Masaka"),
+        ("Ordered delivery and paid with MTN MoMo — so easy. Food arrived piping hot!","Grace N.","Lyantonde"),
+        ("The Nyama Choma is outstanding. That smoky firewood flavour is incredible.","David O.","Kampala"),
+        ("Perfect for family gatherings. Very generous portions and warm service.","Fatuma A.","Mbarara"),
+        ("Fresh tilapia from Lake Victoria, cooked to perfection. I drive 15km for this.","Robert B.","Rakai"),
+        ("The Matoke with groundnut sauce is the real deal. Tastes just like home.","Apio C.","Mbale"),
+        ("Avocado smoothie + Pilau = best lunch in Lyantonde. Period.","Hassan K.","Lyantonde"),
+      ] * 2 %}
+      <div class="tcard">
+        <div class="tcard-stars">★★★★★</div>
+        <p class="tcard-text">"{{ txt }}"</p>
+        <div class="tcard-auth">
+          <div class="tcard-avatar">{{ name[0] }}</div>
+          <div><div class="tcard-name">{{ name }}</div><div class="tcard-loc">{{ loc }}</div></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <h2>Hungry? Order Now &amp;<br>We'll Deliver to You</h2>
+  <p>Delivery across Lyantonde and surroundings up to 20km. Free delivery on orders over UGX 50,000!</p>
+  <div class="cta-banner-btns">
+    <a href="{{ url_for('order') }}" class="btn btn-gold"><i class="fas fa-utensils"></i> Order Online</a>
+    <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="btn btn-outline-light" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Order</a>
+    <a href="{{ url_for('reserve') }}" class="btn btn-forest"><i class="fas fa-calendar-check"></i> Reserve Table</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function quickAdd(id,name,price){
+  let cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
+  const ex=cart.find(i=>i.id===id);
+  if(ex)ex.qty++;
+  else cart.push({id,name,price,qty:1});
+  sessionStorage.setItem('mpombo_cart',JSON.stringify(cart));
+  const btn=event.currentTarget;
+  btn.style.background='var(--forest3)';btn.innerHTML='✓';
+  setTimeout(()=>{btn.style.background='';btn.innerHTML='+'},1500);
+}
+</script>
+{% endblock %}

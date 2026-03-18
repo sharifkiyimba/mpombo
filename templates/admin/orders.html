@@ -1,0 +1,114 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Orders — Mpombo Admin{% endblock %}
+{% block page_title %}Orders{% endblock %}
+{% block admin_content %}
+
+<div class="filter-bar">
+  <form method="GET" style="display:contents">
+    <input type="text" name="q" placeholder="Search by order # or customer name..." value="{{ search }}">
+    <select name="status" onchange="this.form.submit()">
+      <option value="" {{ 'selected' if not status_filter }}>All Statuses</option>
+      {% for s in ['pending','confirmed','preparing','ready','delivered','cancelled'] %}
+      <option value="{{ s }}" {{ 'selected' if status_filter==s }}>{{ s|title }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-forest btn-sm"><i class="fas fa-search"></i> Search</button>
+    {% if status_filter or search %}
+    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline btn-sm">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="ac">
+  <div class="ac-head">
+    <div class="ac-title">
+      {% if status_filter %}{{ status_filter|title }} Orders{% else %}All Orders{% endif %}
+      <span style="font-size:14px;font-family:'Outfit',sans-serif;color:var(--text3);font-weight:400;margin-left:8px">
+        ({{ orders|length }} results)
+      </span>
+    </div>
+    <a href="{{ url_for('admin_sales') }}" class="btn btn-outline btn-sm">Sales Report →</a>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="atable">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Items</th>
+          <th>Payment</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if orders %}
+          {% for o in orders %}
+          <tr>
+            <td style="font-family:'Yeseva One',serif;font-size:12px;color:var(--clay);white-space:nowrap">{{ o.order_number }}</td>
+            <td>
+              <div style="font-weight:500;color:var(--forest);font-size:13px">{{ o.customer_name or '—' }}</div>
+              <div style="font-size:11px;color:var(--text3)">{{ o.customer_phone or '—' }}</div>
+              {% if o.customer_email %}<div style="font-size:11px;color:var(--text3)">{{ o.customer_email or '—' }}</div>{% endif %}
+            </td>
+            <td style="font-size:12px;text-transform:capitalize">{{ (o.order_type or 'delivery')|replace('_',' ') }}</td>
+            <td>
+              <button onclick="toggleItems({{ o.id }})" class="btn btn-outline btn-sm" style="font-size:10px">
+                View Items
+              </button>
+              <div id="items-{{ o.id }}" style="display:none;margin-top:8px;font-size:12px;color:var(--text2)">
+                — loading —
+              </div>
+            </td>
+            <td style="font-size:12px;text-transform:capitalize">{{ (o.payment_method or 'cash')|replace('_',' ') }}</td>
+            <td style="font-weight:600;color:var(--forest);font-size:13px;white-space:nowrap">{{ o.total_display }}</td>
+            <td style="font-size:12px;color:var(--text3);white-space:nowrap">{{ o.created_at.strftime('%d %b %Y\n%H:%M') if o.created_at else '—' }}</td>
+            <td><span class="badge badge-{{ o.status }}">{{ o.status|title }}</span></td>
+            <td>
+              <select class="status-sel" onchange="updateOrder({{ o.id }},this.value)">
+                <option value="">— Update —</option>
+                {% for s in ['pending','confirmed','preparing','ready','delivered','cancelled'] %}
+                <option value="{{ s }}" {{ 'selected' if o.status==s }}>{{ s|title }}</option>
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)">
+            No orders found. {% if status_filter or search %}<a href="{{ url_for('admin_orders') }}" style="color:var(--clay)">Clear filters</a>{% endif %}
+          </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+{% block admin_js %}
+<script>
+function updateOrder(id,status){
+  if(!status)return;
+  fetch('/admin/update-order',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({order_id:id,status})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      const row=document.querySelector(`select[onchange="updateOrder(${id},this.value)"]`).closest('tr');
+      const badge=row.querySelector('.badge');
+      badge.className='badge badge-'+status;
+      badge.textContent=status.charAt(0).toUpperCase()+status.slice(1);
+    } else alert('Error: '+d.error);
+  });
+}
+const itemsCache={};
+function toggleItems(id){
+  const el=document.getElementById('items-'+id);
+  if(el.style.display==='none'){el.style.display='block'}
+  else{el.style.display='none';return}
+}
+</script>
+{% endblock %}

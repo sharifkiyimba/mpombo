@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Track Order — Mpombo Family Restaurant{% endblock %}
+{% block extra_css %}
+.track-wrap{max-width:660px;margin:0 auto;padding:100px 5% 80px}
+.track-card{background:white;border-radius:6px;padding:36px;
+  box-shadow:0 4px 24px rgba(44,26,14,.08);margin-bottom:20px}
+.stl-step{display:flex;align-items:flex-start;gap:16px;margin-bottom:22px;position:relative}
+.stl-step:not(:last-child)::after{content:'';position:absolute;left:18px;top:38px;
+  width:2px;height:calc(100% - 14px);background:var(--cream2)}
+.stl-circle{width:38px;height:38px;border-radius:50%;
+  border:2px solid var(--cream2);background:white;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;z-index:1}
+.stl-step.done .stl-circle{background:var(--forest3);border-color:var(--forest3);color:white}
+.stl-step.active .stl-circle{background:var(--clay);border-color:var(--clay);
+  animation:pdot 1.5s ease infinite}
+@keyframes pdot{0%,100%{box-shadow:0 0 0 0 rgba(192,89,42,.4)}50%{box-shadow:0 0 0 8px rgba(192,89,42,0)}}
+.stl-label{font-size:14px;font-weight:500;color:var(--text3);padding-top:7px}
+.stl-step.done .stl-label,.stl-step.active .stl-label{color:var(--forest)}
+.stl-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.orow{display:flex;justify-content:space-between;padding:9px 0;
+  border-bottom:1px solid var(--cream2);font-size:14px;color:var(--text2)}
+.orow:last-child{border-bottom:none}
+.orow strong{color:var(--forest)}
+{% endblock %}
+
+{% block content %}
+<div class="track-wrap">
+  <div class="track-card">
+    <h1 style="font-family:'Yeseva One',serif;font-size:30px;color:var(--forest);margin-bottom:6px">🔍 Track Your Order</h1>
+    <p style="color:var(--text3);font-size:14px;margin-bottom:24px">Enter your order number to see the status of your delivery.</p>
+    <form method="POST" action="{{ url_for('track') }}" style="display:flex;gap:10px">
+      <input type="text" name="order_number" placeholder="e.g. MP-240101120000-ABCD"
+        value="{{ order_number }}"
+        style="flex:1;padding:12px 14px;border:1.5px solid var(--cream2);border-radius:3px;
+          font-family:'Outfit',sans-serif;font-size:15px;outline:none;transition:border-color .3s"
+        onfocus="this.style.borderColor='var(--clay)'" onblur="this.style.borderColor='var(--cream2)'">
+      <button type="submit" class="btn btn-clay"><i class="fas fa-search"></i> Track</button>
+    </form>
+  </div>
+
+  {% if order %}
+  <div class="track-card">
+    <div style="font-family:'Yeseva One',serif;font-size:20px;color:var(--clay);margin-bottom:20px">
+      {{ order.order_number }}
+    </div>
+
+    <!-- Status Timeline -->
+    {% set statuses = [
+      ('pending',   '⏳', 'Order Received',  'We received your order!'),
+      ('confirmed', '✅', 'Confirmed',        'Your order has been confirmed'),
+      ('preparing', '👨‍🍳', 'Being Prepared',  'Our chefs are cooking your food'),
+      ('ready',     '📦', 'Ready',            'Your order is ready!'),
+      ('delivered', '🎉', 'Delivered',        'Enjoy your meal!'),
+    ] %}
+    {% set all_s = ['pending','confirmed','preparing','ready','delivered'] %}
+    <div style="margin-bottom:24px">
+      {% for s, icon, label, sub in statuses %}
+        {% set cur_idx = all_s.index(order.status) if order.status in all_s else 0 %}
+        {% set this_idx = all_s.index(s) %}
+        {% set is_done = this_idx < cur_idx %}
+        {% set is_active = s == order.status %}
+      <div class="stl-step {{ 'done' if is_done else ('active' if is_active else '') }}">
+        <div class="stl-circle">{% if is_done %}✓{% else %}{{ icon }}{% endif %}</div>
+        <div>
+          <div class="stl-label">{{ label }}</div>
+          <div class="stl-sub">{{ sub }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      {% if order.status == 'cancelled' %}
+      <div class="stl-step active">
+        <div class="stl-circle" style="background:#B5251E;border-color:#B5251E">❌</div>
+        <div>
+          <div class="stl-label" style="color:#B5251E">Cancelled</div>
+          <div class="stl-sub">This order was cancelled. Contact us for assistance.</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="orow"><span>Customer</span><strong>{{ order.customer_name or '—' }}</strong></div>
+    <div class="orow"><span>Phone</span><strong>{{ order.customer_phone or '—' }}</strong></div>
+    <div class="orow"><span>Order Type</span><strong>{{ (order.order_type or 'delivery')|replace('_',' ')|title }}</strong></div>
+    <div class="orow"><span>Payment</span><strong>{{ (order.payment_method or 'cash')|replace('_',' ')|title }}</strong></div>
+    <div class="orow"><span>Total</span><strong style="color:var(--clay);font-size:16px">{{ order.total_display }}</strong></div>
+
+    {% if order.items_list %}
+    <div style="margin-top:18px">
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Items Ordered</div>
+      {% for item in order.items_list %}
+      <div class="orow">
+        <span>{{ item.item_name or item.name }} ×{{ item.quantity }}</span>
+        <strong>UGX {{ "{:,}".format((item.unit_price|float * item.quantity|int)|int) }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top:18px;text-align:center">
+      <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Hello%2C%20my%20order%20is%20{{ order.order_number }}" class="btn btn-outline-clay btn-sm" target="_blank">
+        <i class="fab fa-whatsapp"></i> Contact Us About This Order
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="track-card" style="text-align:center;padding:24px">
+    <p style="font-size:14px;color:var(--text3)">Need help with your order?</p>
+    <a href="tel:{{ config.RESTAURANT_PHONE }}" style="font-size:18px;color:var(--clay);font-weight:600;display:block;margin-top:8px">{{ config.RESTAURANT_PHONE }}</a>
+  </div>
+</div>
+{% endblock %}

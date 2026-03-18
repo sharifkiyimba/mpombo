@@ -1,0 +1,182 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Dashboard — Mpombo Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block admin_content %}
+
+<div class="stats-grid">
+  <div class="scard">
+    <div class="scard-tag tag-live">Today</div>
+    <div class="scard-icon"><i class="fas fa-receipt" style="color:var(--clay)"></i></div>
+    <div class="scard-val">{{ stats.orders_today or 0 }}</div>
+    <div class="scard-label">Orders Today</div>
+  </div>
+  <div class="scard">
+    <div class="scard-tag tag-gold">Today</div>
+    <div class="scard-icon"><i class="fas fa-coins" style="color:var(--clay)"></i></div>
+    <div class="scard-val" style="font-size:20px">UGX {{ "{:,.0f}".format((stats.revenue_today or 0)|float) }}</div>
+    <div class="scard-label">Revenue Today</div>
+  </div>
+  <div class="scard">
+    <div class="scard-icon"><i class="fas fa-clock" style="color:var(--clay)"></i></div>
+    <div class="scard-val">{{ stats.pending or 0 }}</div>
+    <div class="scard-label">Pending Orders</div>
+  </div>
+  <div class="scard">
+    <div class="scard-icon"><i class="fas fa-users" style="color:var(--clay)"></i></div>
+    <div class="scard-val">{{ customers.count or 0 }}</div>
+    <div class="scard-label">Total Customers</div>
+  </div>
+</div>
+
+<!-- All-time row -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:22px">
+  <div style="background:white;border-radius:6px;padding:18px 22px;border:1px solid var(--cream2)">
+    <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px">All-Time Orders</div>
+    <div style="font-family:'Yeseva One',serif;font-size:26px;color:var(--forest)">{{ all_time.total_orders or 0 }}</div>
+  </div>
+  <div style="background:white;border-radius:6px;padding:18px 22px;border:1px solid var(--cream2)">
+    <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px">All-Time Revenue</div>
+    <div style="font-family:'Yeseva One',serif;font-size:22px;color:var(--forest)">UGX {{ "{:,.0f}".format((all_time.total_revenue or 0)|float) }}</div>
+  </div>
+  <div style="background:white;border-radius:6px;padding:18px 22px;border:1px solid var(--cream2)">
+    <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px">Preparing Now</div>
+    <div style="font-family:'Yeseva One',serif;font-size:26px;color:var(--clay)">{{ stats.preparing or 0 }}</div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+  {% for href, icon, title, sub in [
+    (url_for('admin_orders'), 'fas fa-receipt', 'Manage Orders', 'View & update statuses'),
+    (url_for('admin_reservations'), 'fas fa-calendar-alt', 'Reservations', 'Confirm table bookings'),
+    (url_for('admin_sales'), 'fas fa-chart-line', 'Sales Report', 'Revenue analytics'),
+  ] %}
+  <a href="{{ href }}" style="background:white;border:1px solid var(--cream2);border-radius:6px;
+    padding:18px;display:flex;align-items:center;gap:13px;transition:all .3s;color:var(--text)">
+    <div style="width:42px;height:42px;border-radius:8px;background:var(--clay-pale);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--clay);font-size:18px;flex-shrink:0">
+      <i class="{{ icon }}"></i>
+    </div>
+    <div>
+      <div style="font-weight:600;font-size:14px;color:var(--forest)">{{ title }}</div>
+      <div style="font-size:12px;color:var(--text3)">{{ sub }}</div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Recent Orders -->
+<div class="ac">
+  <div class="ac-head">
+    <div class="ac-title">Recent Orders</div>
+    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline btn-sm">View All →</a>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="atable">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Payment</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if orders %}
+          {% for o in orders %}
+          <tr>
+            <td style="font-family:'Yeseva One',serif;font-size:13px;color:var(--clay)">{{ o.order_number }}</td>
+            <td>
+              <div style="font-weight:500;color:var(--forest);font-size:13px">{{ o.customer_name or o.get('name','—') }}</div>
+              <div style="font-size:11px;color:var(--text3)">{{ o.customer_phone or '—' }}</div>
+            </td>
+            <td style="font-size:12px;text-transform:capitalize">{{ (o.order_type or 'delivery')|replace('_',' ') }}</td>
+            <td style="font-size:12px;text-transform:capitalize">{{ (o.payment_method or 'cash')|replace('_',' ') }}</td>
+            <td style="font-weight:600;color:var(--forest);font-size:13px">{{ o.total_display }}</td>
+            <td><span class="badge badge-{{ o.status }}">{{ o.status|title }}</span></td>
+            <td>
+              <select class="status-sel" onchange="updateOrder({{ o.id }},this.value)">
+                <option value="">— Update —</option>
+                {% for s in ['pending','confirmed','preparing','ready','delivered','cancelled'] %}
+                <option value="{{ s }}" {{ 'selected' if o.status==s }}>{{ s|title }}</option>
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="7" style="text-align:center;padding:36px;color:var(--text3)">
+            No orders yet 🍽️ — <a href="{{ url_for('menu') }}" style="color:var(--clay)">View Menu</a>
+          </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pending Reservations -->
+{% if reservations %}
+<div class="ac">
+  <div class="ac-head">
+    <div class="ac-title">Upcoming Reservations</div>
+    <a href="{{ url_for('admin_reservations') }}" class="btn btn-outline btn-sm">View All →</a>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="atable">
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th><th>Update</th></tr>
+      </thead>
+      <tbody>
+        {% for r in reservations %}
+        <tr>
+          <td style="font-weight:500;color:var(--forest)">{{ r.name }}</td>
+          <td>{{ r.phone }}</td>
+          <td>{{ r.reservation_date }}</td>
+          <td>{{ r.reservation_time }}</td>
+          <td>{{ r.guest_count or r.guests or '?' }}</td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status|title }}</span></td>
+          <td>
+            <select class="status-sel" onchange="updateReservation({{ r.id }},this.value)">
+              <option value="">— Update —</option>
+              {% for s in ['pending','confirmed','cancelled','completed'] %}
+              <option value="{{ s }}" {{ 'selected' if r.status==s }}>{{ s|title }}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+{% block admin_js %}
+<script>
+function updateOrder(id,status){
+  if(!status)return;
+  fetch('/admin/update-order',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({order_id:id,status})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){location.reload()}
+    else alert('Error: '+d.error);
+  });
+}
+function updateReservation(id,status){
+  if(!status)return;
+  fetch('/admin/update-reservation',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({reservation_id:id,status})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){location.reload()}
+    else alert('Error: '+d.error);
+  });
+}
+</script>
+{% endblock %}

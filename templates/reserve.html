@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Reserve a Table — Mpombo Family Restaurant{% endblock %}
+{% block extra_css %}
+.reserve-wrap{max-width:720px;margin:0 auto;padding:100px 5% 80px}
+.reserve-card{background:white;border-radius:6px;padding:40px;box-shadow:0 4px 24px rgba(44,26,14,.08)}
+.success-box{background:rgba(28,61,46,.08);border:1.5px solid var(--forest3);
+  border-radius:6px;padding:28px;text-align:center}
+{% endblock %}
+{% block content %}
+<div class="reserve-wrap">
+  <div style="text-align:center;margin-bottom:40px">
+    <span class="eyebrow">✦ Book Your Table</span>
+    <h1 style="font-family:'Yeseva One',serif;font-size:clamp(32px,5vw,50px);color:var(--forest)">
+      Reserve a <span style="color:var(--clay)">Table</span>
+    </h1>
+    <p style="color:var(--text3);margin-top:10px">Book your dining experience at Mpombo Family Restaurant. We'll confirm via phone.</p>
+  </div>
+  <div class="reserve-card">
+    <div id="reserveForm">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="rName" placeholder="Nakato Sarah" required></div>
+        <div class="form-group"><label>Phone Number *</label><input type="tel" id="rPhone" placeholder="+256 7XX XXX XXX" required></div>
+      </div>
+      <div class="form-group"><label>Email (optional)</label><input type="email" id="rEmail" placeholder="you@example.com"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Date *</label><input type="date" id="rDate" required></div>
+        <div class="form-group"><label>Time *</label><input type="time" id="rTime" value="12:00" required></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Number of Guests *</label>
+          <select id="rGuests">
+            <option value="1">1 Guest</option>
+            <option value="2" selected>2 Guests</option>
+            <option value="3">3 Guests</option>
+            <option value="4">4 Guests</option>
+            <option value="5">5 Guests</option>
+            <option value="6">6 Guests</option>
+            <option value="8">8 Guests</option>
+            <option value="10">10+ (we'll call you)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Occasion (optional)</label>
+          <select id="rOccasion">
+            <option>Regular Meal</option>
+            <option>Birthday</option>
+            <option>Anniversary</option>
+            <option>Business Lunch</option>
+            <option>Family Gathering</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Special Requests</label>
+        <textarea id="rNotes" placeholder="Dietary needs, seating preferences, birthday cake..."></textarea>
+      </div>
+      <button onclick="submitReservation()" class="btn btn-clay" style="width:100%;justify-content:center">
+        <i class="fas fa-calendar-check"></i> Confirm Reservation
+      </button>
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--text3)">
+        Or call us: <a href="tel:{{ config.RESTAURANT_PHONE }}" style="color:var(--clay);font-weight:500">{{ config.RESTAURANT_PHONE }}</a>
+      </p>
+    </div>
+    <div id="reserveSuccess" class="success-box" style="display:none">
+      <div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <h3 style="font-family:'Yeseva One',serif;font-size:26px;color:var(--forest);margin-bottom:10px">Reservation Received!</h3>
+      <p style="color:var(--text2);font-size:15px;line-height:1.7">We will call you to confirm your table. See you at Mpombo!</p>
+      <a href="{{ url_for('index') }}" class="btn btn-forest btn-sm" style="margin-top:18px">Back to Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('rDate').min=new Date().toISOString().split('T')[0];
+function submitReservation(){
+  const name=document.getElementById('rName').value.trim();
+  const phone=document.getElementById('rPhone').value.trim();
+  const date=document.getElementById('rDate').value;
+  const time=document.getElementById('rTime').value;
+  if(!name||!phone||!date||!time){alert('Please fill in all required fields.');return}
+  fetch('/api/reserve',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,phone,email:document.getElementById('rEmail').value,
+      guests:document.getElementById('rGuests').value,date,time,
+      special_requests:document.getElementById('rNotes').value})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      document.getElementById('reserveForm').style.display='none';
+      document.getElementById('reserveSuccess').style.display='block';
+    } else alert('Error: '+d.error);
+  });
+}
+</script>
+{% endblock %}

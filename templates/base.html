@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Mpombo Family Restaurant — Lyantonde, Uganda{% endblock %}</title>
+  <meta name="description" content="Authentic Ugandan food in Lyantonde. Luwombo, Matoke, Nyama Choma, Rolex & more. Order delivery or reserve a table.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&family=Yeseva+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+  /* ═══════════════════════════════════════════════
+     MPOMBO DESIGN SYSTEM — Pearl of Africa Palette
+  ═══════════════════════════════════════════════ */
+  :root {
+    --forest:    #1C3D2E;
+    --forest2:   #275A42;
+    --forest3:   #347A58;
+    --clay:      #C0592A;
+    --clay2:     #D97B45;
+    --clay-pale: #F5DDD0;
+    --gold:      #D4A540;
+    --gold2:     #EBC870;
+    --gold-pale: #FBF0D5;
+    --cream:     #FBF7F0;
+    --cream2:    #F2EAD8;
+    --dark:      #18100A;
+    --text:      #2A1A0E;
+    --text2:     #6B4A2A;
+    --text3:     #9B7A52;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden;line-height:1.6}
+  a{text-decoration:none;color:inherit}
+  img{max-width:100%;display:block}
+  button{cursor:pointer;font-family:'Outfit',sans-serif}
+
+  /* KENTE */
+  .kente{height:6px;background:repeating-linear-gradient(90deg,
+    var(--forest) 0,var(--forest) 18px,
+    var(--gold)   18px,var(--gold)   24px,
+    var(--clay)   24px,var(--clay)   42px,
+    var(--gold)   42px,var(--gold)   48px,
+    var(--forest2)48px,var(--forest2)60px,
+    var(--gold2)  60px,var(--gold2)  66px)}
+
+  /* NAV */
+  nav{position:fixed;top:6px;left:0;right:0;z-index:1000;
+    background:rgba(24,16,10,.97);backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(212,165,64,.2)}
+  .nav-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;
+    justify-content:space-between;padding:0 5%;height:66px}
+  .nav-brand{display:flex;align-items:center;gap:12px}
+  .nav-logo{width:40px;height:40px;border-radius:50%;background:var(--clay);
+    display:flex;align-items:center;justify-content:center;font-size:18px}
+  .nav-brand-name{font-family:'Yeseva One',serif;font-size:16px;color:var(--gold);line-height:1.1}
+  .nav-brand-sub{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(212,165,64,.4)}
+  .nav-links{display:flex;align-items:center;gap:24px;list-style:none}
+  .nav-links a{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;
+    color:rgba(255,255,255,.6);transition:color .3s;position:relative;padding-bottom:4px}
+  .nav-links a::after{content:'';position:absolute;bottom:0;left:0;right:0;
+    height:1.5px;background:var(--clay2);transform:scaleX(0);transition:transform .3s}
+  .nav-links a:hover{color:var(--gold)}
+  .nav-links a:hover::after{transform:scaleX(1)}
+  .nav-cta{background:var(--clay)!important;color:white!important;
+    padding:8px 18px;border-radius:3px}
+  .nav-cta::after{display:none!important}
+  .nav-cta:hover{background:var(--clay2)!important}
+  .hamburger{display:none;flex-direction:column;gap:5px;
+    background:none;border:none;padding:4px}
+  .hamburger span{display:block;width:24px;height:2px;
+    background:var(--gold);transition:all .3s}
+
+  /* FLASH */
+  .flash-wrap{position:fixed;top:80px;right:20px;z-index:3000;
+    display:flex;flex-direction:column;gap:10px;max-width:340px}
+  .flash{padding:13px 16px;border-radius:4px;font-size:14px;
+    display:flex;align-items:flex-start;gap:10px;
+    box-shadow:0 4px 20px rgba(0,0,0,.15);animation:sfl .35s ease}
+  @keyframes sfl{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+  .flash i{margin-top:2px;flex-shrink:0}
+  .flash-close{margin-left:auto;background:none;border:none;
+    color:inherit;opacity:.6;font-size:15px;cursor:pointer}
+  .flash-success{background:#0D3B22;color:#A7F3C5;border-left:3px solid #3CB371}
+  .flash-danger {background:#4A0D0A;color:#FFBDBA;border-left:3px solid #E53935}
+  .flash-warning{background:#3D2600;color:#FFE0A0;border-left:3px solid var(--gold)}
+  .flash-info   {background:#0D2137;color:#A0CFFF;border-left:3px solid #2196F3}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border:none;
+    border-radius:3px;font-family:'Outfit',sans-serif;font-size:12px;
+    letter-spacing:1.8px;text-transform:uppercase;font-weight:500;
+    transition:all .3s;cursor:pointer}
+  .btn-clay{background:var(--clay);color:white}
+  .btn-clay:hover{background:var(--clay2);transform:translateY(-2px)}
+  .btn-forest{background:var(--forest);color:white}
+  .btn-forest:hover{background:var(--forest2);transform:translateY(-2px)}
+  .btn-gold{background:var(--gold);color:var(--dark)}
+  .btn-gold:hover{background:var(--gold2)}
+  .btn-outline-clay{background:transparent;border:1.5px solid var(--clay);color:var(--clay)}
+  .btn-outline-clay:hover{background:var(--clay);color:white}
+  .btn-outline-light{background:transparent;border:1.5px solid rgba(255,255,255,.4);color:white}
+  .btn-outline-light:hover{background:rgba(255,255,255,.1)}
+  .btn-sm{padding:8px 18px;font-size:11px}
+
+  /* TYPOGRAPHY HELPERS */
+  .eyebrow{display:block;font-size:10px;letter-spacing:4px;text-transform:uppercase;
+    color:var(--clay2);margin-bottom:12px}
+  .section-title{font-family:'Yeseva One',serif;
+    font-size:clamp(28px,4vw,50px);color:var(--forest);line-height:1.15}
+  .section-title.light{color:var(--cream)}
+  .section-title span{color:var(--clay)}
+
+  /* PAGE HERO (inner pages) */
+  .page-hero{padding:140px 5% 70px;
+    background:linear-gradient(rgba(18,10,5,.85),rgba(18,10,5,.85)),
+      url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80') center/cover;
+    text-align:center}
+  .page-hero .eyebrow{color:var(--gold2)}
+  .page-hero h1{font-family:'Yeseva One',serif;
+    font-size:clamp(34px,5vw,62px);color:white;line-height:1.1}
+  .page-hero p{color:rgba(255,255,255,.65);margin-top:14px;font-size:16px;
+    max-width:520px;margin-inline:auto}
+
+  /* FORMS */
+  .form-group{margin-bottom:22px}
+  .form-group label{display:block;font-size:10px;letter-spacing:2px;
+    text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+  .form-group input,.form-group select,.form-group textarea{
+    width:100%;padding:12px 14px;border:1px solid #DDD3C4;border-radius:3px;
+    font-family:'Outfit',sans-serif;font-size:15px;color:var(--text);
+    background:white;outline:none;transition:border-color .3s}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+    border-color:var(--clay)}
+  .form-group textarea{resize:vertical;min-height:100px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;
+    padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+  .badge-pending  {background:#FFF3CD;color:#856404}
+  .badge-confirmed{background:#CFE2FF;color:#084298}
+  .badge-preparing{background:#FFE5D0;color:#7B3600}
+  .badge-ready    {background:#D1E7DD;color:#0A3622}
+  .badge-delivered{background:#D1E7DD;color:#0A3622}
+  .badge-cancelled{background:#F8D7DA;color:#58151C}
+  .badge-completed{background:#D1E7DD;color:#0A3622}
+
+  /* FOOTER */
+  footer{background:var(--dark);color:rgba(255,255,255,.6);padding:0 5%}
+  .footer-grid{max-width:1280px;margin:0 auto;padding:56px 0 48px;
+    display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr;gap:48px}
+  .footer-logo{font-family:'Yeseva One',serif;font-size:21px;
+    color:var(--gold);margin-bottom:12px}
+  .footer-desc{font-size:14px;line-height:1.8;opacity:.7;margin-bottom:20px}
+  .footer-socials{display:flex;gap:10px}
+  .fsoc{width:36px;height:36px;border-radius:50%;
+    border:1px solid rgba(212,165,64,.25);display:flex;align-items:center;
+    justify-content:center;color:var(--gold);font-size:14px;transition:all .3s}
+  .fsoc:hover{background:var(--clay);border-color:var(--clay);color:white}
+  .footer-head{font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--clay2);margin-bottom:18px}
+  .footer-links{list-style:none}
+  .footer-links li{margin-bottom:10px}
+  .footer-links a{font-size:14px;color:rgba(255,255,255,.55);transition:color .3s}
+  .footer-links a:hover{color:var(--gold)}
+  .fci{display:flex;gap:12px;margin-bottom:12px;font-size:14px}
+  .fci i{color:var(--clay2);margin-top:2px;flex-shrink:0}
+  .footer-bottom{border-top:1px solid rgba(255,255,255,.07);
+    max-width:1280px;margin:0 auto;padding:22px 0;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;flex-wrap:wrap;gap:12px}
+  .footer-bottom a{color:rgba(255,255,255,.3);margin-left:20px;transition:color .3s}
+  .footer-bottom a:hover{color:var(--gold)}
+
+  /* WHATSAPP */
+  .wa-float{position:fixed;bottom:28px;right:28px;z-index:999;
+    width:56px;height:56px;border-radius:50%;background:#25D366;
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-size:26px;
+    box-shadow:0 4px 18px rgba(37,211,102,.45);
+    animation:waPulse 2.5s ease infinite;transition:transform .3s}
+  .wa-float:hover{transform:scale(1.1)}
+  @keyframes waPulse{
+    0%,100%{box-shadow:0 4px 18px rgba(37,211,102,.4)}
+    50%{box-shadow:0 4px 36px rgba(37,211,102,.75)}}
+
+  @media(max-width:900px){
+    .hamburger{display:flex}
+    .nav-links{position:fixed;top:72px;right:0;width:270px;
+      height:calc(100vh - 72px);background:rgba(18,10,5,.98);
+      flex-direction:column;align-items:flex-start;
+      padding:32px 24px;gap:18px;
+      transform:translateX(100%);transition:transform .4s ease}
+    .nav-links.open{transform:translateX(0)}
+    .nav-links a{font-size:13px}}
+  @media(max-width:700px){
+    .footer-grid{grid-template-columns:1fr;gap:28px}
+    .footer-bottom{flex-direction:column;text-align:center}
+    .form-row{grid-template-columns:1fr}}
+  {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+<div class="kente" style="position:fixed;top:0;left:0;right:0;z-index:1001"></div>
+
+<!-- Flash Messages -->
+<div class="flash-wrap">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+    <div class="flash flash-{{ cat }}">
+      <i class="fas fa-{% if cat=='success' %}check-circle{% elif cat=='danger' %}exclamation-circle{% elif cat=='warning' %}triangle-exclamation{% else %}info-circle{% endif %}"></i>
+      <span>{{ msg }}</span>
+      <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<!-- Navigation -->
+<nav id="mainNav">
+  <div class="nav-inner">
+    <a href="{{ url_for('index') }}" class="nav-brand">
+      <div class="nav-logo">🍽️</div>
+      <div>
+        <div class="nav-brand-name">Mpombo Family</div>
+        <div class="nav-brand-sub">Restaurant · Uganda</div>
+      </div>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('menu') }}">Menu</a></li>
+      <li><a href="{{ url_for('order') }}">Order</a></li>
+      <li><a href="{{ url_for('reserve') }}">Reserve</a></li>
+      <li><a href="{{ url_for('track') }}">Track</a></li>
+      <li><a href="{{ url_for('about') }}">About</a></li>
+      <li><a href="{{ url_for('contact') }}">Contact</a></li>
+      {% if session.get('logged_in') %}
+        {% if session.get('role')=='admin' %}
+          <li><a href="{{ url_for('dashboard') }}" class="nav-cta">Dashboard</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+      {% else %}
+        <li><a href="{{ url_for('login') }}" class="nav-cta">Login</a></li>
+      {% endif %}
+    </ul>
+    <button class="hamburger" onclick="toggleNav()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer>
+  <div class="kente"></div>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo">Mpombo Family Restaurant</div>
+      <p class="footer-desc">Serving the Pearl of Africa's finest flavours in Lyantonde. From Luwombo to Nyama Choma — every dish cooked with love and authentic Ugandan tradition.</p>
+      <div class="footer-socials">
+        <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" class="fsoc" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="fsoc"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="fsoc"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="fsoc"><i class="fab fa-twitter"></i></a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-head">Explore</div>
+      <ul class="footer-links">
+        <li><a href="{{ url_for('menu') }}">Full Menu</a></li>
+        <li><a href="{{ url_for('order') }}">Order Online</a></li>
+        <li><a href="{{ url_for('reserve') }}">Reserve a Table</a></li>
+        <li><a href="{{ url_for('track') }}">Track My Order</a></li>
+        <li><a href="{{ url_for('about') }}">About Us</a></li>
+        <li><a href="{{ url_for('contact') }}">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-head">Hours</div>
+      <ul class="footer-links">
+        <li><a>Mon–Fri: 7am – 10pm</a></li>
+        <li><a>Saturday: 7am – 11pm</a></li>
+        <li><a>Sunday: 8am – 9pm</a></li>
+        <li><a style="color:var(--gold2)">Delivery till 9pm daily</a></li>
+        <li><a style="color:var(--clay2)">Free delivery over UGX 50,000</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-head">Contact</div>
+      <div class="fci"><i class="fas fa-map-marker-alt"></i><span>Opposite Petro Uganda, Lyantonde District</span></div>
+      <div class="fci"><i class="fas fa-phone-alt"></i><a href="tel:{{ config.RESTAURANT_PHONE }}" style="color:rgba(255,255,255,.55)">{{ config.RESTAURANT_PHONE }}</a></div>
+      <div class="fci"><i class="fab fa-whatsapp"></i><a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" target="_blank" style="color:rgba(255,255,255,.55)">Chat on WhatsApp</a></div>
+      <div class="fci"><i class="fas fa-envelope"></i><a href="mailto:{{ config.RESTAURANT_EMAIL }}" style="color:rgba(255,255,255,.55)">{{ config.RESTAURANT_EMAIL }}</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© {{ now().year }} Mpombo Family Restaurant. All rights reserved.</span>
+    <div>
+      <a href="#">Privacy</a>
+      <a href="{{ url_for('login') }}">Staff Login</a>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Greetings%20Mpombo%20Family%2C%20I%20want%20to%20order!" class="wa-float" target="_blank" title="Order via WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<script>
+window.addEventListener('scroll',()=>{
+  document.getElementById('mainNav').style.boxShadow=window.scrollY>40?'0 4px 24px rgba(0,0,0,.4)':'none';
+});
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+setTimeout(()=>{document.querySelectorAll('.flash').forEach(f=>f.remove())},6000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

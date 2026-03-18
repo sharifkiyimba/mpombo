@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Reservation Status — Mpombo Family Restaurant{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:0 auto;padding:100px 5% 80px">
+  <div style="background:white;border-radius:6px;padding:36px;box-shadow:0 4px 24px rgba(44,26,14,.08)">
+    <h1 style="font-family:'Yeseva One',serif;font-size:28px;color:var(--forest);margin-bottom:8px">Check Reservation Status</h1>
+    <p style="color:var(--text3);font-size:14px;margin-bottom:24px">Enter your phone number to find your reservation.</p>
+    <form method="GET" style="display:flex;gap:10px;margin-bottom:24px">
+      <input type="tel" name="phone" placeholder="+256 7XX XXX XXX"
+        value="{{ request.args.get('phone','') }}"
+        style="flex:1;padding:12px 14px;border:1.5px solid var(--cream2);border-radius:3px;
+          font-family:'Outfit',sans-serif;font-size:15px;outline:none">
+      <button type="submit" class="btn btn-clay btn-sm">Search</button>
+    </form>
+    {% if reservation %}
+    <div style="border-top:2px solid var(--clay-pale);padding-top:20px">
+      <div style="margin-bottom:6px">
+        <span class="badge badge-{{ reservation.status }}">{{ reservation.status|title }}</span>
+        {% if reservation.table_number %}<span style="font-size:13px;color:var(--text3);margin-left:8px">Table {{ reservation.table_number }}</span>{% endif %}
+      </div>
+      {% for label,val in [
+        ('Name', reservation.name),
+        ('Phone', reservation.phone),
+        ('Date', reservation.reservation_date|string),
+        ('Time', reservation.reservation_time|string),
+        ('Guests', reservation.guest_count|string),
+        ('Special Requests', reservation.special_requests or '—'),
+      ] %}
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--cream2);font-size:14px">
+        <span style="color:var(--text3)">{{ label }}</span>
+        <strong style="color:var(--forest)">{{ val }}</strong>
+      </div>
+      {% endfor %}
+      <div style="text-align:center;margin-top:20px">
+        <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" class="btn btn-outline-clay btn-sm" target="_blank">
+          <i class="fab fa-whatsapp"></i> Contact Us
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

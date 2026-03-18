@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}About Us — Mpombo Family Restaurant{% endblock %}
+{% block extra_css %}
+.about-story{max-width:1100px;margin:0 auto;padding:80px 5%;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.about-story img{width:100%;height:420px;object-fit:cover;border-radius:6px;
+  box-shadow:0 12px 40px rgba(44,26,14,.15)}
+.about-text h2{font-family:'Yeseva One',serif;font-size:36px;color:var(--forest);margin-bottom:18px}
+.about-text h2 span{color:var(--clay)}
+.about-text p{font-size:15px;line-height:1.85;color:var(--text2);margin-bottom:14px}
+.values{background:var(--forest);padding:80px 5%}
+.values-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:1280px;margin:0 auto}
+.value{text-align:center;padding:24px 18px}
+.value-icon{font-size:38px;display:block;margin-bottom:14px}
+.value-title{font-family:'Yeseva One',serif;font-size:19px;color:var(--gold2);margin-bottom:8px}
+.value-desc{font-size:13px;color:rgba(255,255,255,.5);line-height:1.6}
+.team-section{max-width:900px;margin:80px auto;padding:0 5%;text-align:center}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:36px;text-align:left}
+.team-card{background:white;border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(44,26,14,.07)}
+.team-card img{width:100%;height:192px;object-fit:cover}
+.team-card-body{padding:18px}
+.team-name{font-family:'Libre Baskerville',serif;font-size:18px;color:var(--forest);margin-bottom:3px}
+.team-role{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--clay2)}
+@media(max-width:900px){.about-story{grid-template-columns:1fr}.values-grid{grid-template-columns:1fr 1fr}.team-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.values-grid{grid-template-columns:1fr}.team-grid{grid-template-columns:1fr}}
+{% endblock %}
+{% block content %}
+<div style="padding:160px 5% 80px;text-align:center;
+  background:linear-gradient(rgba(18,10,5,.82),rgba(18,10,5,.82)),
+    url('https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1600&q=80') center/cover">
+  <span class="eyebrow" style="color:var(--gold2)">✦ Our Story</span>
+  <h1 style="font-family:'Yeseva One',serif;font-size:clamp(36px,6vw,68px);color:white;line-height:1.1">
+    Family, Food<br><span style="color:var(--clay2)">& Soul</span>
+  </h1>
+  <p style="color:rgba(255,255,255,.65);margin-top:14px;max-width:520px;margin-inline:auto">
+    The story of Mpombo Family Restaurant is a story of love — for Uganda, community, and the ancient flavours of our homeland.
+  </p>
+</div>
+
+<div class="about-story">
+  <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80" alt="Our Restaurant">
+  <div class="about-text">
+    <span class="eyebrow">✦ Founded in Lyantonde</span>
+    <h2>Born from <span>Ugandan Roots</span></h2>
+    <p>Mpombo Family Restaurant started as a dream — to bring the authentic flavours of Ugandan home cooking to a proper table. Located opposite Petro Uganda in Lyantonde District, we opened our doors with one mission: cook real food, the real way.</p>
+    <p>We source our matoke from local farmers, our tilapia fresh from Lake Victoria, and our groundnuts from surrounding villages. Every dish is cooked slowly, with care, using methods passed through generations of Ugandan kitchens.</p>
+    <p>Today, we're proud to be part of the Lyantonde community — feeding families, hosting celebrations, and keeping the tradition of Ugandan hospitality alive.</p>
+    <a href="{{ url_for('menu') }}" class="btn btn-clay" style="margin-top:8px">Explore Our Menu</a>
+  </div>
+</div>
+
+<div class="values">
+  <div style="text-align:center;margin-bottom:48px">
+    <span class="eyebrow" style="color:var(--gold2)">✦ What We Stand For</span>
+    <h2 style="font-family:'Yeseva One',serif;font-size:clamp(26px,4vw,44px);color:var(--cream)">Our <span style="color:var(--clay2)">Values</span></h2>
+  </div>
+  <div class="values-grid">
+    <div class="value"><span class="value-icon">🌿</span><div class="value-title">Fresh & Local</div><div class="value-desc">Ingredients sourced from Ugandan farmers and Lake Victoria. Supporting our community every day.</div></div>
+    <div class="value"><span class="value-icon">🔥</span><div class="value-title">Traditional Methods</div><div class="value-desc">Luwombo in banana leaves, Nyama Choma over firewood — the authentic Ugandan way every time.</div></div>
+    <div class="value"><span class="value-icon">❤️</span><div class="value-title">Made with Love</div><div class="value-desc">Every plate cooked as if it's for family. Because to us, every customer is family.</div></div>
+    <div class="value"><span class="value-icon">🚀</span><div class="value-title">Fast Delivery</div><div class="value-desc">Hot food delivered within 20km. MTN MoMo, Airtel Money or cash. Always convenient.</div></div>
+  </div>
+</div>
+
+<div class="team-section">
+  <span class="eyebrow">✦ The People Behind the Food</span>
+  <h2 style="font-family:'Yeseva One',serif;font-size:clamp(26px,4vw,40px);color:var(--forest)">Meet the <span style="color:var(--clay)">Family</span></h2>
+  <div class="team-grid">
+    <div class="team-card">
+      <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=400&q=80" alt="Head Chef">
+      <div class="team-card-body"><div class="team-name">Head Chef</div><div class="team-role">Founder & Executive Chef</div></div>
+    </div>
+    <div class="team-card">
+      <img src="https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=400&q=80" alt="Manager">
+      <div class="team-card-body"><div class="team-name">Restaurant Manager</div><div class="team-role">Operations & Guest Experience</div></div>
+    </div>
+    <div class="team-card">
+      <img src="https://images.unsplash.com/photo-1581299894007-aaa50297cf16?w=400&q=80" alt="Delivery">
+      <div class="team-card-body"><div class="team-name">Delivery Team</div><div class="team-role">Fast & Reliable Delivery</div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

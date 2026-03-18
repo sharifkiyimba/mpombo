@@ -1,0 +1,136 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Sales Report — Mpombo Admin{% endblock %}
+{% block page_title %}Sales Report{% endblock %}
+{% block admin_content %}
+
+<!-- Date Filter -->
+<div class="ac" style="margin-bottom:22px">
+  <div class="ac-body" style="padding:18px 22px">
+    <form method="GET" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <label style="font-size:12px;color:var(--text3);letter-spacing:1px;text-transform:uppercase">From:</label>
+      <input type="date" name="from" value="{{ date_from }}"
+        style="padding:8px 12px;border:1px solid var(--cream2);border-radius:3px;
+          font-family:'Outfit',sans-serif;font-size:14px;outline:none">
+      <label style="font-size:12px;color:var(--text3);letter-spacing:1px;text-transform:uppercase">To:</label>
+      <input type="date" name="to" value="{{ date_to }}"
+        style="padding:8px 12px;border:1px solid var(--cream2);border-radius:3px;
+          font-family:'Outfit',sans-serif;font-size:14px;outline:none">
+      <button type="submit" class="btn btn-forest btn-sm"><i class="fas fa-filter"></i> Filter</button>
+    </form>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="stats-grid">
+  <div class="scard">
+    <div class="scard-icon"><i class="fas fa-receipt" style="color:var(--clay)"></i></div>
+    <div class="scard-val">{{ summary.total_orders or 0 }}</div>
+    <div class="scard-label">Total Orders</div>
+  </div>
+  <div class="scard">
+    <div class="scard-icon"><i class="fas fa-coins" style="color:var(--clay)"></i></div>
+    <div class="scard-val" style="font-size:18px">UGX {{ "{:,.0f}".format((summary.total_revenue or 0)|float) }}</div>
+    <div class="scard-label">Total Revenue</div>
+  </div>
+  <div class="scard">
+    <div class="scard-icon"><i class="fas fa-calculator" style="color:var(--clay)"></i></div>
+    <div class="scard-val" style="font-size:18px">UGX {{ "{:,.0f}".format((summary.avg_order or 0)|float) }}</div>
+    <div class="scard-label">Average Order Value</div>
+  </div>
+  <div class="scard">
+    <div class="scard-icon"><i class="fas fa-motorcycle" style="color:var(--clay)"></i></div>
+    <div class="scard-val" style="font-size:18px">UGX {{ "{:,.0f}".format((summary.delivery_revenue or 0)|float) }}</div>
+    <div class="scard-label">Delivery Revenue</div>
+  </div>
+</div>
+
+<!-- Payment & Status Breakdown -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px">
+  <div class="ac" style="margin-bottom:0">
+    <div class="ac-head"><div class="ac-title">By Payment Method</div></div>
+    <div style="overflow-x:auto">
+      <table class="atable">
+        <thead><tr><th>Method</th><th>Orders</th><th>Revenue</th></tr></thead>
+        <tbody>
+          {% if by_payment %}
+            {% for p in by_payment %}
+            <tr>
+              <td style="text-transform:capitalize;font-weight:500">{{ p.payment_method|replace('_',' ')|title }}</td>
+              <td>{{ p.count }}</td>
+              <td style="font-weight:600;color:var(--forest)">UGX {{ "{:,.0f}".format(p.total|float) }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px">No data</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="ac" style="margin-bottom:0">
+    <div class="ac-head"><div class="ac-title">By Order Status</div></div>
+    <div style="overflow-x:auto">
+      <table class="atable">
+        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+        <tbody>
+          {% if by_status %}
+            {% for s in by_status %}
+            <tr>
+              <td><span class="badge badge-{{ s.status }}">{{ s.status|title }}</span></td>
+              <td style="font-weight:600">{{ s.count }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="2" style="text-align:center;color:var(--text3);padding:24px">No data</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Breakdown -->
+<div class="ac">
+  <div class="ac-head">
+    <div class="ac-title">Daily Sales Breakdown</div>
+    <span style="font-size:13px;color:var(--text3)">{{ date_from }} → {{ date_to }}</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="atable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Orders</th>
+          <th>Sales Revenue</th>
+          <th>Delivery Revenue</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if daily %}
+          {% set grand_total = namespace(val=0) %}
+          {% for d in daily %}
+          {% set grand_total.val = grand_total.val + (d.total_sales|float) %}
+          <tr>
+            <td style="font-weight:500">{{ d.sale_date }}</td>
+            <td>{{ d.order_count }}</td>
+            <td>UGX {{ "{:,.0f}".format((d.subtotal_sales or 0)|float) }}</td>
+            <td>UGX {{ "{:,.0f}".format((d.delivery_revenue or 0)|float) }}</td>
+            <td style="font-weight:600;color:var(--forest)">UGX {{ "{:,.0f}".format((d.total_sales or 0)|float) }}</td>
+          </tr>
+          {% endfor %}
+          <tr style="background:var(--cream);font-weight:600">
+            <td colspan="4" style="text-align:right;color:var(--text2)">Period Total:</td>
+            <td style="color:var(--clay);font-size:15px">UGX {{ "{:,.0f}".format((summary.total_revenue or 0)|float) }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3)">
+            No sales data for this period.
+          </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Login — Mpombo Family Restaurant{% endblock %}
+{% block extra_css %}
+.auth-page{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+.auth-visual{
+  background:linear-gradient(145deg,rgba(18,10,5,.88) 0%,rgba(39,90,66,.7) 100%),
+    url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80') center/cover;
+  display:flex;flex-direction:column;justify-content:flex-end;padding:60px;position:relative}
+.av-logo{position:absolute;top:44px;left:60px;display:flex;align-items:center;gap:12px}
+.av-logo span{font-family:'Yeseva One',serif;font-size:18px;color:white}
+.av-quote{font-family:'Libre Baskerville',serif;font-style:italic;
+  font-size:26px;color:var(--cream);line-height:1.4;margin-bottom:12px}
+.av-by{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2)}
+.auth-form-side{background:var(--cream);display:flex;flex-direction:column;
+  justify-content:center;padding:72px 60px}
+.auth-title{font-family:'Yeseva One',serif;font-size:36px;color:var(--forest);margin-bottom:5px}
+.auth-title span{color:var(--clay)}
+.auth-sub{font-size:14px;color:var(--text3);margin-bottom:36px}
+.auth-submit{width:100%;padding:14px;background:var(--forest);color:white;border:none;
+  border-radius:3px;font-family:'Outfit',sans-serif;font-size:13px;letter-spacing:2px;
+  text-transform:uppercase;font-weight:500;transition:all .3s;margin-bottom:18px;cursor:pointer}
+.auth-submit:hover{background:var(--forest2)}
+.divider-or{display:flex;align-items:center;gap:12px;margin:18px 0}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--cream2)}
+.divider-or span{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.wa-login-btn{display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:12px;background:#25D366;color:white;border-radius:3px;
+  font-size:13px;font-weight:500;transition:all .3s}
+.wa-login-btn:hover{background:#1DA851}
+@media(max-width:800px){.auth-page{grid-template-columns:1fr}.auth-visual{display:none}.auth-form-side{padding:110px 24px 60px}}
+{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-visual">
+    <div class="av-logo"><span>🍽️ Mpombo Family</span></div>
+    <div class="av-quote">"Every meal is a celebration of where we come from."</div>
+    <div class="av-by">✦ Lyantonde, Uganda</div>
+  </div>
+  <div class="auth-form-side">
+    <h1 class="auth-title">Welcome <span>Back</span></h1>
+    <p class="auth-sub">Sign in to manage orders, reservations and more.</p>
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label>Username or Email</label>
+        <input type="text" name="username" placeholder="admin or you@email.com" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="auth-submit">Sign In →</button>
+    </form>
+    <div class="divider-or"><span>or order without an account</span></div>
+    <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="wa-login-btn" target="_blank">
+      <i class="fab fa-whatsapp" style="font-size:18px"></i> Order via WhatsApp
+    </a>
+    <div style="text-align:center;margin-top:20px;font-size:14px;color:var(--text2)">
+      No account? <a href="{{ url_for('register') }}" style="color:var(--clay);font-weight:500">Create one free</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

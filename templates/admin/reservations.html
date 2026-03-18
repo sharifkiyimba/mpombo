@@ -1,0 +1,98 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Reservations — Mpombo Admin{% endblock %}
+{% block page_title %}Reservations{% endblock %}
+{% block admin_content %}
+
+<div class="filter-bar">
+  <form method="GET" style="display:contents">
+    <select name="status" onchange="this.form.submit()">
+      <option value="" {{ 'selected' if not status_filter }}>All Reservations</option>
+      {% for s in ['pending','confirmed','cancelled','completed'] %}
+      <option value="{{ s }}" {{ 'selected' if status_filter==s }}>{{ s|title }}</option>
+      {% endfor %}
+    </select>
+    {% if status_filter %}
+    <a href="{{ url_for('admin_reservations') }}" class="btn btn-outline btn-sm">Show All</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="ac">
+  <div class="ac-head">
+    <div class="ac-title">
+      {% if status_filter %}{{ status_filter|title }} Reservations{% else %}All Reservations{% endif %}
+      <span style="font-size:14px;font-family:'Outfit',sans-serif;color:var(--text3);font-weight:400;margin-left:8px">
+        ({{ reservations|length }})
+      </span>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="atable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Guests</th>
+          <th>Requests</th>
+          <th>Table</th>
+          <th>Status</th>
+          <th>Confirm</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if reservations %}
+          {% for r in reservations %}
+          <tr id="res-{{ r.id }}">
+            <td style="font-weight:500;color:var(--forest)">{{ r.name }}</td>
+            <td><a href="tel:{{ r.phone }}" style="color:var(--clay)">{{ r.phone }}</a></td>
+            <td style="font-size:12px">{{ r.email or '—' }}</td>
+            <td style="white-space:nowrap">{{ r.reservation_date }}</td>
+            <td>{{ r.reservation_time }}</td>
+            <td style="text-align:center;font-weight:600">{{ r.guest_count or r.guests or '?' }}</td>
+            <td style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ r.special_requests }}">
+              {{ r.special_requests or '—' }}
+            </td>
+            <td>
+              <input type="text" id="table-{{ r.id }}" value="{{ r.table_number or '' }}"
+                placeholder="T1" style="width:50px;padding:5px 7px;border:1px solid var(--cream2);
+                  border-radius:3px;font-size:12px;font-family:'Outfit',sans-serif;outline:none">
+            </td>
+            <td><span class="badge badge-{{ r.status }}" id="badge-{{ r.id }}">{{ r.status|title }}</span></td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap;padding:13px 8px">
+              <button onclick="confirmRes({{ r.id }},'confirmed')" class="btn btn-forest btn-sm">✓ Confirm</button>
+              <button onclick="confirmRes({{ r.id }},'cancelled')" class="btn btn-danger btn-sm">✗ Cancel</button>
+              <button onclick="confirmRes({{ r.id }},'completed')" class="btn btn-outline btn-sm">✓ Done</button>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text3)">
+            No reservations found.
+          </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+{% block admin_js %}
+<script>
+function confirmRes(id,status){
+  const tableNum=document.getElementById('table-'+id).value;
+  fetch('/admin/update-reservation',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({reservation_id:id,status,table_number:tableNum})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      const badge=document.getElementById('badge-'+id);
+      badge.className='badge badge-'+status;
+      badge.textContent=status.charAt(0).toUpperCase()+status.slice(1);
+    } else alert('Error: '+d.error);
+  });
+}
+</script>
+{% endblock %}

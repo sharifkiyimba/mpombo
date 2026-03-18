@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% block title %}Place Order — Mpombo Family Restaurant{% endblock %}
+{% block extra_css %}
+.order-layout{display:grid;grid-template-columns:1fr 390px;gap:28px;
+  max-width:1200px;margin:0 auto;padding:100px 5% 80px}
+.order-panel{background:white;border-radius:6px;padding:28px;
+  border:1px solid var(--cream2);margin-bottom:20px}
+.op-title{font-family:'Yeseva One',serif;font-size:22px;color:var(--forest);
+  margin-bottom:20px;display:flex;align-items:center;gap:9px}
+.menu-mini{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:520px;overflow-y:auto}
+.mmini{display:flex;gap:10px;padding:11px;border:1.5px solid var(--cream2);
+  border-radius:4px;cursor:pointer;transition:all .3s;align-items:flex-start}
+.mmini:hover,.mmini.sel{border-color:var(--clay);background:var(--clay-pale)}
+.mmini img{width:50px;height:50px;border-radius:3px;object-fit:cover;flex-shrink:0}
+.mmini-name{font-size:13px;font-weight:500;color:var(--forest);margin-bottom:2px;line-height:1.2}
+.mmini-price{font-size:12px;color:var(--clay);font-weight:600}
+.mmini-cat{font-size:10px;color:var(--text3);margin-bottom:3px}
+.mmini-qty{display:flex;align-items:center;gap:5px;margin-top:5px}
+.mq-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--cream2);
+  background:transparent;font-size:12px;color:var(--text2);
+  display:flex;align-items:center;justify-content:center;transition:all .2s}
+.mq-btn:hover{background:var(--clay);color:white;border-color:var(--clay)}
+.mq-n{font-size:13px;font-weight:600;min-width:14px;text-align:center}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.type-opt{padding:14px 8px;border:1.5px solid var(--cream2);border-radius:4px;
+  text-align:center;cursor:pointer;transition:all .3s}
+.type-opt:hover,.type-opt.sel{border-color:var(--clay);background:var(--clay-pale)}
+.type-opt i{font-size:22px;display:block;margin-bottom:5px;color:var(--clay)}
+.type-opt span{font-size:12px;font-weight:500;color:var(--forest)}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pay-opt{padding:13px 10px;border:1.5px solid var(--cream2);border-radius:4px;
+  display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .3s}
+.pay-opt:hover,.pay-opt.sel{border-color:var(--forest2);background:rgba(28,61,46,.05)}
+.pay-opt input{accent-color:var(--forest2)}
+.pay-opt .po-icon{font-size:20px;flex-shrink:0}
+.pay-opt .po-label{font-size:13px;font-weight:500;color:var(--text);line-height:1.2}
+.pay-opt .po-sub{font-size:11px;color:var(--text3)}
+.summary-panel{position:sticky;top:88px}
+.sum-items{margin-bottom:14px;max-height:250px;overflow-y:auto}
+.sum-item{display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--cream2);font-size:14px}
+.sum-item:last-child{border-bottom:none}
+.sum-name{color:var(--text2);flex:1}
+.sum-price{font-weight:600;color:var(--forest);margin-left:10px}
+.sum-row{display:flex;justify-content:space-between;font-size:14px;color:var(--text2);margin-bottom:7px}
+.sum-total{font-family:'Yeseva One',serif;font-size:21px;color:var(--forest);
+  border-top:2px solid var(--clay-pale);padding-top:12px;margin-top:6px}
+.empty-msg{text-align:center;padding:28px;color:var(--text3);font-size:14px}
+.empty-msg i{font-size:32px;color:var(--cream2);display:block;margin-bottom:10px}
+.fee-info{background:var(--gold-pale);padding:11px 14px;border-radius:4px;
+  font-size:13px;color:var(--text2);margin-top:-10px;margin-bottom:16px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:8px;padding:44px;text-align:center;
+  max-width:440px;width:90%;transform:scale(.95);transition:transform .3s}
+.modal-overlay.open .modal{transform:scale(1)}
+@media(max-width:900px){.order-layout{grid-template-columns:1fr}.summary-panel{position:relative;top:auto}}
+@media(max-width:580px){.menu-mini{grid-template-columns:1fr}.type-grid{grid-template-columns:1fr}.pay-grid{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block content %}
+<div style="height:72px"></div>
+<div class="order-layout">
+  <div>
+    <!-- Step 1: Choose Food -->
+    <div class="order-panel">
+      <div class="op-title">🍌 Step 1: Choose Your Food</div>
+      <div class="menu-mini" id="menuMini">
+        {% for cat in menu %}{% for item in cat.dishes %}
+        <div class="mmini" id="mc{{ item.id }}" onclick="selectItem(event,{{ item.id }},'{{ item.name|e }}',{{ item.price }},'{{ item.img }}')">
+          <img src="{{ item.img }}" alt="{{ item.name }}">
+          <div style="flex:1">
+            <div class="mmini-cat">{{ cat.name }}</div>
+            <div class="mmini-name">{{ item.name }}</div>
+            <div class="mmini-price">UGX {{ "{:,}".format(item.price) }}</div>
+            <div class="mmini-qty" id="mqc{{ item.id }}" style="display:none">
+              <button class="mq-btn" onclick="event.stopPropagation();mqty({{ item.id }},-1)">−</button>
+              <span class="mq-n" id="mqn{{ item.id }}">0</span>
+              <button class="mq-btn" onclick="event.stopPropagation();mqty({{ item.id }},1,'{{ item.name|e }}',{{ item.price }})">+</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}{% endfor %}
+      </div>
+    </div>
+
+    <!-- Step 2: Order Type -->
+    <div class="order-panel">
+      <div class="op-title">🚗 Step 2: How Would You Like It?</div>
+      <div class="type-grid">
+        <div class="type-opt sel" id="to-delivery" onclick="setType('delivery')">
+          <i class="fas fa-motorcycle"></i><span>Delivery</span>
+        </div>
+        <div class="type-opt" id="to-pickup" onclick="setType('pickup')">
+          <i class="fas fa-store"></i><span>Pick Up</span>
+        </div>
+        <div class="type-opt" id="to-dine_in" onclick="setType('dine_in')">
+          <i class="fas fa-utensils"></i><span>Dine In</span>
+        </div>
+      </div>
+      <div id="delivery-fields">
+        <div class="form-group">
+          <label>Delivery Address</label>
+          <input type="text" id="address" placeholder="Your location in Lyantonde or nearby">
+        </div>
+        <div class="form-group">
+          <label>Estimated Distance from Restaurant (km)</label>
+          <input type="number" id="distance" min="0" max="20" step="0.5" placeholder="e.g. 3" oninput="updateFee()">
+        </div>
+        <div class="fee-info" id="feeInfo">📍 Enter your distance to calculate the delivery fee.</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Details -->
+    <div class="order-panel">
+      <div class="op-title">👤 Step 3: Your Details</div>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="custName" placeholder="Nakato Sarah" required></div>
+        <div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" placeholder="+256 7XX XXX XXX" required></div>
+      </div>
+      <div class="form-group"><label>Email (optional)</label><input type="email" id="custEmail" placeholder="you@example.com"></div>
+      <div class="form-group"><label>Special Instructions</label><textarea id="custNotes" placeholder="Allergies, extra sauce, preferences..." style="min-height:72px"></textarea></div>
+    </div>
+
+    <!-- Step 4: Payment -->
+    <div class="order-panel">
+      <div class="op-title">💳 Step 4: Payment Method</div>
+      <div class="pay-grid">
+        <label class="pay-opt sel" id="po-mtn">
+          <input type="radio" name="payment" value="mtn_momo" checked>
+          <span class="po-icon">📱</span>
+          <div><div class="po-label">MTN Mobile Money</div><div class="po-sub">Pay via MTN MoMo</div></div>
+        </label>
+        <label class="pay-opt" id="po-airtel">
+          <input type="radio" name="payment" value="airtel_money">
+          <span class="po-icon">📲</span>
+          <div><div class="po-label">Airtel Money</div><div class="po-sub">Pay via Airtel MoMo</div></div>
+        </label>
+        <label class="pay-opt" id="po-cash">
+          <input type="radio" name="payment" value="cash">
+          <span class="po-icon">💵</span>
+          <div><div class="po-label">Cash on Delivery</div><div class="po-sub">Pay when food arrives</div></div>
+        </label>
+        <label class="pay-opt" id="po-card">
+          <input type="radio" name="payment" value="card">
+          <span class="po-icon">💳</span>
+          <div><div class="po-label">Card Payment</div><div class="po-sub">Visa / Mastercard</div></div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Panel -->
+  <div class="summary-panel">
+    <div class="order-panel">
+      <div class="op-title" style="font-size:19px">📋 Order Summary</div>
+      <div class="sum-items" id="sumItems">
+        <div class="empty-msg"><i class="fas fa-shopping-bag"></i>No items yet.<br>Choose food from Step 1!</div>
+      </div>
+      <div id="sumDetails" style="display:none">
+        <div class="sum-row"><span>Subtotal</span><span id="sumSub" style="font-weight:600">UGX 0</span></div>
+        <div class="sum-row"><span>Delivery Fee</span><span id="sumFee" style="color:var(--clay);font-weight:500">UGX 0</span></div>
+        <div class="sum-row sum-total"><span>Total</span><span id="sumTotal">UGX 0</span></div>
+        <button onclick="placeOrder()" class="btn btn-clay" style="width:100%;justify-content:center;margin-top:18px">
+          <i class="fas fa-check-circle"></i> Confirm Order
+        </button>
+        <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">
+          Or order via <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" target="_blank" style="color:var(--forest2)">WhatsApp</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div style="font-size:52px;margin-bottom:14px">🎉</div>
+    <h2 style="font-family:'Yeseva One',serif;font-size:28px;color:var(--forest);margin-bottom:8px">Order Placed!</h2>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:4px">Your order number:</p>
+    <p id="modalOrderNum" style="font-family:'Yeseva One',serif;font-size:20px;color:var(--clay);margin-bottom:18px">MP-...</p>
+    <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:26px">Thank you! We are preparing your food and will call to confirm. 🍌🔥</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <a id="trackLink" href="#" class="btn btn-forest btn-sm">Track My Order</a>
+      <button onclick="closeModal()" class="btn btn-outline-clay btn-sm">Close</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
+let orderType='delivery';
+let deliveryFee=5000;
+
+function ugx(n){return 'UGX '+parseInt(n).toLocaleString()}
+
+// Restore cart quantities
+cart.forEach(i=>{
+  const qc=document.getElementById('mqc'+i.id);
+  const qn=document.getElementById('mqn'+i.id);
+  const mc=document.getElementById('mc'+i.id);
+  if(qc)qc.style.display='flex';
+  if(qn)qn.textContent=i.qty;
+  if(mc&&i.qty>0)mc.classList.add('sel');
+});
+
+function selectItem(e,id,name,price,img){
+  let ex=cart.find(i=>i.id===id);
+  if(!ex){
+    cart.push({id,name,price,img,qty:1});
+    const qc=document.getElementById('mqc'+id);
+    const qn=document.getElementById('mqn'+id);
+    if(qc)qc.style.display='flex';
+    if(qn)qn.textContent=1;
+    e.currentTarget.classList.add('sel');
+  }
+  save();render();
+}
+function mqty(id,delta,name,price){
+  let ex=cart.find(i=>i.id===id);
+  if(delta>0&&!ex){cart.push({id,name,price,qty:1})}
+  else if(ex){
+    ex.qty=Math.max(0,ex.qty+delta);
+    if(ex.qty===0){
+      cart=cart.filter(i=>i.id!==id);
+      const qc=document.getElementById('mqc'+id);
+      if(qc)qc.style.display='none';
+      const mc=document.getElementById('mc'+id);
+      if(mc)mc.classList.remove('sel');
+    }
+  }
+  const qn=document.getElementById('mqn'+id);
+  if(qn)qn.textContent=(cart.find(i=>i.id===id)||{qty:0}).qty;
+  save();render();
+}
+function save(){sessionStorage.setItem('mpombo_cart',JSON.stringify(cart))}
+
+function setType(t){
+  orderType=t;
+  ['delivery','pickup','dine_in'].forEach(x=>{
+    document.getElementById('to-'+x).classList.toggle('sel',x===t);
+  });
+  document.getElementById('delivery-fields').style.display=t==='delivery'?'block':'none';
+  if(t!=='delivery')deliveryFee=0;
+  else updateFee();
+  render();
+}
+function updateFee(){
+  const d=parseFloat(document.getElementById('distance').value)||0;
+  const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const fi=document.getElementById('feeInfo');
+  if(d>20){fi.innerHTML='❌ Exceeds 20km max range. Please contact us.';deliveryFee=null;return}
+  if(sub>=50000){deliveryFee=0;fi.innerHTML='🎉 <strong>Free delivery!</strong> Orders above UGX 50,000 qualify.'}
+  else{deliveryFee=5000+(d*1000);fi.innerHTML=`🚗 Delivery fee: <strong>${ugx(deliveryFee)}</strong> (${d}km × UGX 1,000 + UGX 5,000 base)`}
+  render();
+}
+function render(){
+  const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const fee=orderType==='delivery'?(deliveryFee||0):0;
+  const total=sub+fee;
+  const det=document.getElementById('sumDetails');
+  const items=document.getElementById('sumItems');
+  if(!cart.length){
+    items.innerHTML='<div class="empty-msg"><i class="fas fa-shopping-bag"></i>No items yet.<br>Choose food from Step 1!</div>';
+    det.style.display='none';
+  } else {
+    items.innerHTML=cart.map(i=>`<div class="sum-item">
+      <span class="sum-name">${i.name} ×${i.qty}</span>
+      <span class="sum-price">${ugx(i.price*i.qty)}</span></div>`).join('');
+    document.getElementById('sumSub').textContent=ugx(sub);
+    document.getElementById('sumFee').textContent=orderType==='delivery'?ugx(fee):'Free';
+    document.getElementById('sumTotal').textContent=ugx(total);
+    det.style.display='block';
+  }
+}
+document.querySelectorAll('.pay-opt').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.pay-opt').forEach(e=>e.classList.remove('sel'));
+    el.classList.add('sel');
+  });
+});
+function placeOrder(){
+  const name=document.getElementById('custName').value.trim();
+  const phone=document.getElementById('custPhone').value.trim();
+  if(!name||!phone){alert('Please enter your name and phone number.');return}
+  if(!cart.length){alert('Please add at least one item.');return}
+  if(deliveryFee===null&&orderType==='delivery'){alert('Distance exceeds 20km. Please contact us.');return}
+  const payMethod=document.querySelector('input[name="payment"]:checked').value;
+  const distance=parseFloat(document.getElementById('distance').value)||0;
+  fetch('/api/place-order',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      name,phone,
+      email:document.getElementById('custEmail').value,
+      notes:document.getElementById('custNotes').value,
+      items:cart.map(i=>({id:i.id,name:i.name,price:i.price,quantity:i.qty})),
+      payment_method:payMethod,order_type:orderType,distance,
+      address:document.getElementById('address').value
+    })
+  })
+  .then(r=>r.json()).then(d=>{
+    if(d.success){
+      document.getElementById('modalOrderNum').textContent=d.order_number;
+      document.getElementById('trackLink').href='/track';
+      document.getElementById('successModal').classList.add('open');
+      sessionStorage.removeItem('mpombo_cart');cart=[];render();
+    } else alert('Order failed: '+d.error);
+  }).catch(e=>alert('Error: '+e));
+}
+function closeModal(){document.getElementById('successModal').classList.remove('open')}
+setType('delivery');render();
+</script>
+{% endblock %}

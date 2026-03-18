@@ -1,0 +1,75 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Customers — Mpombo Admin{% endblock %}
+{% block page_title %}Customers{% endblock %}
+{% block admin_content %}
+
+<div class="filter-bar">
+  <form method="GET" style="display:contents">
+    <input type="text" name="q" placeholder="Search by username, email or phone..." value="{{ search }}">
+    <button type="submit" class="btn btn-forest btn-sm"><i class="fas fa-search"></i> Search</button>
+    {% if search %}<a href="{{ url_for('admin_customers') }}" class="btn btn-outline btn-sm">Clear</a>{% endif %}
+  </form>
+</div>
+
+<div class="ac">
+  <div class="ac-head">
+    <div class="ac-title">
+      All Users
+      <span style="font-size:14px;font-family:'Outfit',sans-serif;color:var(--text3);font-weight:400;margin-left:8px">
+        ({{ customers|length }})
+      </span>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="atable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if customers %}
+          {% for c in customers %}
+          <tr>
+            <td style="color:var(--text3);font-size:12px">{{ c.id }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:30px;height:30px;border-radius:50%;
+                  background:{{ 'var(--clay)' if c.role=='admin' else 'var(--forest3)' }};
+                  display:flex;align-items:center;justify-content:center;
+                  color:white;font-size:12px;font-weight:600;flex-shrink:0">
+                  {{ c.username[0]|upper }}
+                </div>
+                <span style="font-weight:500;color:var(--forest)">{{ c.username }}</span>
+              </div>
+            </td>
+            <td style="font-size:13px">{{ c.email }}</td>
+            <td style="font-size:13px">{{ c.phone or '—' }}</td>
+            <td>
+              <span style="font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;
+                background:{{ '#FFF3CD' if c.role=='admin' else '#D1E7DD' }};
+                color:{{ '#856404' if c.role=='admin' else '#0A3622' }}">
+                {{ c.role|title }}
+              </span>
+            </td>
+            <td style="font-size:12px;color:var(--text3)">
+              {{ c.created_at.strftime('%d %b %Y') if c.created_at else '—' }}
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text3)">
+            No users found. {% if search %}<a href="{{ url_for('admin_customers') }}" style="color:var(--clay)">Clear search</a>{% endif %}
+          </td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
