@@ -34,6 +34,57 @@ class Config:
     MAX_DELIVERY_KM     = 20
     FREE_DELIVERY_MIN   = 50000  # UGX — orders above this get free delivery
 
+# ── Site Settings (loaded from DB, falls back to Config) ─────
+def get_settings():
+    """Load site settings from DB. Falls back to Config defaults."""
+    defaults = {
+        'restaurant_name':    Config.RESTAURANT_NAME,
+        'restaurant_phone':   Config.RESTAURANT_PHONE,
+        'restaurant_whatsapp':Config.RESTAURANT_WHATSAPP,
+        'restaurant_email':   Config.RESTAURANT_EMAIL,
+        'restaurant_address': Config.RESTAURANT_ADDRESS,
+        'delivery_base_fee':  str(Config.DELIVERY_BASE_FEE),
+        'delivery_per_km':    str(Config.DELIVERY_PER_KM),
+        'max_delivery_km':    str(Config.MAX_DELIVERY_KM),
+        'free_delivery_min':  str(Config.FREE_DELIVERY_MIN),
+        'hours_mon_fri':      '7:00am – 10:00pm',
+        'hours_saturday':     '7:00am – 11:00pm',
+        'hours_sunday':       '8:00am – 9:00pm',
+        'hours_delivery':     'Until 9:00pm daily',
+    }
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT setting_key, setting_value FROM site_settings")
+        rows = cur.fetchall()
+        cur.close()
+        for row in rows:
+            defaults[row['setting_key']] = row['setting_value']
+    except:
+        pass
+    # Expose numeric delivery values
+    try:
+        defaults['delivery_base_fee_int'] = int(defaults['delivery_base_fee'])
+        defaults['delivery_per_km_int']   = int(defaults['delivery_per_km'])
+        defaults['max_delivery_km_int']   = int(defaults['max_delivery_km'])
+        defaults['free_delivery_min_int'] = int(defaults['free_delivery_min'])
+    except:
+        defaults['delivery_base_fee_int'] = Config.DELIVERY_BASE_FEE
+        defaults['delivery_per_km_int']   = Config.DELIVERY_PER_KM
+        defaults['max_delivery_km_int']   = Config.MAX_DELIVERY_KM
+        defaults['free_delivery_min_int'] = Config.FREE_DELIVERY_MIN
+    return defaults
+
+def save_setting(key, value):
+    """Upsert a single setting into site_settings table."""
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        INSERT INTO site_settings (setting_key, setting_value)
+        VALUES (%s, %s)
+        ON DUPLICATE KEY UPDATE setting_value = %s
+    """, (key, value, value))
+    mysql.connection.commit()
+    cur.close()
+
 # ── Full Ugandan Menu ─────────────────────────────────────
 MENU = [
     {
@@ -211,27 +262,27 @@ def get_total_col():
 
 @app.route('/')
 def index():
-    return render_template('index.html', config=Config, menu=MENU)
+    s=get_settings(); return render_template('index.html', config=Config, menu=MENU, settings=s)
 
 @app.route('/menu')
 def menu():
-    return render_template('menu.html', config=Config, menu=MENU)
+    s=get_settings(); return render_template('menu.html', config=Config, menu=MENU, settings=s)
 
 @app.route('/about')
 def about():
-    return render_template('about.html', config=Config)
+    s=get_settings(); return render_template('about.html', config=Config, settings=s)
 
 @app.route('/contact')
 def contact():
-    return render_template('contact.html', config=Config)
+    s=get_settings(); return render_template('contact.html', config=Config, settings=s)
 
 @app.route('/order')
 def order():
-    return render_template('order.html', config=Config, menu=MENU)
+    s=get_settings(); return render_template('order.html', config=Config, menu=MENU, settings=s)
 
 @app.route('/reserve')
 def reserve():
-    return render_template('reserve.html', config=Config)
+    s=get_settings(); return render_template('reserve.html', config=Config, settings=s)
 
 # ── Track Order ───────────────────────────────────────────
 @app.route('/track', methods=['GET', 'POST'])
@@ -808,7 +859,48 @@ def admin_settings():
     cur.execute("SELECT * FROM users ORDER BY role, username")
     users = cur.fetchall()
     cur.close()
-    return render_template('admin/settings.html', config=Config, users=users)
+    s = get_settings()
+    return render_template('admin/settings.html', config=Config, users=users, settings=s)
+
+@app.route('/admin/settings/save-restaurant', methods=['POST'])
+@admin_required
+def settings_save_restaurant():
+    try:
+        data = request.json
+        keys = ['restaurant_name','restaurant_phone','restaurant_whatsapp',
+                'restaurant_email','restaurant_address']
+        for key in keys:
+            if key in data:
+                save_setting(key, data[key])
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/settings/save-delivery', methods=['POST'])
+@admin_required
+def settings_save_delivery():
+    try:
+        data = request.json
+        keys = ['delivery_base_fee','delivery_per_km','max_delivery_km','free_delivery_min']
+        for key in keys:
+            if key in data:
+                save_setting(key, str(data[key]))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/settings/save-hours', methods=['POST'])
+@admin_required
+def settings_save_hours():
+    try:
+        data = request.json
+        keys = ['hours_mon_fri','hours_saturday','hours_sunday','hours_delivery']
+        for key in keys:
+            if key in data:
+                save_setting(key, data[key])
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/admin/settings/change-password', methods=['POST'])
 @login_required
@@ -971,6 +1063,15 @@ def setup_db():
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS site_settings (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                setting_key VARCHAR(100) UNIQUE NOT NULL,
+                setting_value TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        """)
+
         # Create admin user if not exists
         cur.execute("SELECT id FROM users WHERE username='admin'")
         if not cur.fetchone():
@@ -1055,6 +1156,20 @@ def fix_db():
             except:
                 pass
 
+
+        # Add site_settings table if missing
+        try:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS site_settings (
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    setting_key VARCHAR(100) UNIQUE NOT NULL,
+                    setting_value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            """)
+            fixes.append('+ site_settings table')
+        except:
+            pass
         mysql.connection.commit()
         cur.close()
 
@@ -1111,3 +1226,15 @@ if __name__ == '__main__':
     print("  🔒  Admin login:  admin / admin123")
     print("=" * 60)
     app.run(debug=True, host='0.0.0.0', port=5000)
+
+@app.route('/admin/settings/reset', methods=['POST'])
+@admin_required
+def settings_reset():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM site_settings")
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
