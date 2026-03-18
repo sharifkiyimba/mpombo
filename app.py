@@ -360,6 +360,45 @@ def register():
             flash('Username or email already exists.', 'danger')
     return render_template('register.html', config=Config)
 
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current  = request.form.get('current', '')
+        new_pass = request.form.get('new_password', '')
+        confirm  = request.form.get('confirm', '')
+
+        if new_pass != confirm:
+            flash('New passwords do not match.', 'danger')
+            return redirect(url_for('change_password'))
+
+        if len(new_pass) < 6:
+            flash('Password must be at least 6 characters.', 'danger')
+            return redirect(url_for('change_password'))
+
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
+            user = cur.fetchone()
+
+            if not check_password_hash(user['password_hash'], current):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('change_password'))
+
+            new_hash = generate_password_hash(new_pass)
+            cur.execute(
+                "UPDATE users SET password_hash = %s WHERE id = %s",
+                (new_hash, session['user_id'])
+            )
+            mysql.connection.commit()
+            cur.close()
+            flash('Password changed successfully!', 'success')
+            return redirect(url_for('dashboard') if session.get('role') == 'admin' else url_for('index'))
+        except Exception as e:
+            flash(f'Error: {e}', 'danger')
+
+    return render_template('change_password.html', config=Config)
+
 @app.route('/logout')
 def logout():
     session.clear()
