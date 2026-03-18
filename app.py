@@ -1,6 +1,4 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-import pymysql
-pymysql.install_as_MySQLdb()
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
@@ -14,11 +12,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'mpombo-uganda-secret-2024')
 
 # ── Database ─────────────────────────────────────────────
-app.config['MYSQL_HOST']     = os.environ.get('MYSQL_HOST', 'localhost')
-app.config['MYSQL_USER']     = os.environ.get('MYSQL_USER', 'root')
-app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', '')
-app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB', 'mpombo_restaurant')
-app.config['MYSQL_PORT']     = int(os.environ.get('MYSQL_PORT', 3306))
+app.config['MYSQL_HOST']        = os.environ.get('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER']        = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD']    = os.environ.get('MYSQL_PASSWORD', '')
+app.config['MYSQL_DB']          = os.environ.get('MYSQL_DB', 'mpombo_restaurant')
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
@@ -359,45 +356,6 @@ def register():
         except:
             flash('Username or email already exists.', 'danger')
     return render_template('register.html', config=Config)
-
-@app.route('/change-password', methods=['GET', 'POST'])
-@login_required
-def change_password():
-    if request.method == 'POST':
-        current  = request.form.get('current', '')
-        new_pass = request.form.get('new_password', '')
-        confirm  = request.form.get('confirm', '')
-
-        if new_pass != confirm:
-            flash('New passwords do not match.', 'danger')
-            return redirect(url_for('change_password'))
-
-        if len(new_pass) < 6:
-            flash('Password must be at least 6 characters.', 'danger')
-            return redirect(url_for('change_password'))
-
-        try:
-            cur = mysql.connection.cursor()
-            cur.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
-            user = cur.fetchone()
-
-            if not check_password_hash(user['password_hash'], current):
-                flash('Current password is incorrect.', 'danger')
-                return redirect(url_for('change_password'))
-
-            new_hash = generate_password_hash(new_pass)
-            cur.execute(
-                "UPDATE users SET password_hash = %s WHERE id = %s",
-                (new_hash, session['user_id'])
-            )
-            mysql.connection.commit()
-            cur.close()
-            flash('Password changed successfully!', 'success')
-            return redirect(url_for('dashboard') if session.get('role') == 'admin' else url_for('index'))
-        except Exception as e:
-            flash(f'Error: {e}', 'danger')
-
-    return render_template('change_password.html', config=Config)
 
 @app.route('/logout')
 def logout():
@@ -836,6 +794,103 @@ def admin_customers():
     cur.close()
     return render_template('admin/customers.html',
         config=Config, customers=customers, search=search)
+
+# ═══════════════════════════════════════════════════════════
+#  ADMIN — SETTINGS
+# ═══════════════════════════════════════════════════════════
+
+@app.route('/admin/settings')
+@admin_required
+def admin_settings():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users ORDER BY role, username")
+    users = cur.fetchall()
+    cur.close()
+    return render_template('admin/settings.html', config=Config, users=users)
+
+@app.route('/admin/settings/change-password', methods=['POST'])
+@login_required
+def settings_change_password():
+    try:
+        data     = request.json
+        current  = data.get('current', '')
+        new_pass = data.get('new_password', '')
+        if len(new_pass) < 6:
+            return jsonify({'success': False, 'error': 'Password must be at least 6 characters'})
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
+        user = cur.fetchone()
+        if not user or not check_password_hash(user['password_hash'], current):
+            cur.close()
+            return jsonify({'success': False, 'error': 'Current password is incorrect'})
+        cur.execute("UPDATE users SET password_hash = %s WHERE id = %s",
+                    (generate_password_hash(new_pass), session['user_id']))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/settings/add-staff', methods=['POST'])
+@admin_required
+def settings_add_staff():
+    try:
+        data = request.json
+        cur  = mysql.connection.cursor()
+        cur.execute(
+            "INSERT INTO users (username, email, phone, password_hash, role) VALUES (%s,%s,%s,%s,%s)",
+            (data['username'], data['email'], data.get('phone',''),
+             generate_password_hash(data['password']), data.get('role','staff'))
+        )
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/settings/delete-user', methods=['POST'])
+@admin_required
+def settings_delete_user():
+    try:
+        data = request.json
+        uid  = data.get('user_id')
+        if int(uid) == int(session['user_id']):
+            return jsonify({'success': False, 'error': 'You cannot delete your own account'})
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM users WHERE id = %s", (uid,))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/settings/clear-orders', methods=['POST'])
+@admin_required
+def settings_clear_orders():
+    try:
+        cur = mysql.connection.cursor()
+        for tbl in ['order_tracking', 'order_items', 'orders']:
+            try:
+                cur.execute(f"DELETE FROM {tbl}")
+            except:
+                pass
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/settings/clear-reservations', methods=['POST'])
+@admin_required
+def settings_clear_reservations():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM reservations")
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 # ═══════════════════════════════════════════════════════════
 #  DATABASE SETUP

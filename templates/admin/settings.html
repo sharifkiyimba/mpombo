@@ -1,0 +1,341 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Settings — Mpombo Admin{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block admin_css %}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.settings-card{background:white;border-radius:6px;border:1px solid var(--cream2);overflow:hidden}
+.sc-head{padding:18px 22px;border-bottom:1px solid var(--cream2);
+  display:flex;align-items:center;gap:12px}
+.sc-icon{width:38px;height:38px;border-radius:8px;background:var(--clay-pale);
+  display:flex;align-items:center;justify-content:center;color:var(--clay);font-size:16px;flex-shrink:0}
+.sc-title{font-family:'Yeseva One',serif;font-size:18px;color:var(--forest)}
+.sc-body{padding:22px}
+.s-group{margin-bottom:18px}
+.s-group label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:7px}
+.s-group input,.s-group select,.s-group textarea{
+  width:100%;padding:10px 13px;border:1px solid #DDD3C4;border-radius:3px;
+  font-family:'Outfit',sans-serif;font-size:14px;color:var(--text);
+  background:white;outline:none;transition:border-color .3s}
+.s-group input:focus,.s-group select:focus,.s-group textarea:focus{border-color:var(--clay)}
+.s-group textarea{resize:vertical;min-height:80px}
+.s-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.save-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;
+  background:var(--forest);color:white;border:none;border-radius:3px;
+  font-family:'Outfit',sans-serif;font-size:11px;letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:500;transition:all .3s;cursor:pointer;margin-top:4px}
+.save-btn:hover{background:var(--forest2)}
+.save-btn.clay{background:var(--clay)}
+.save-btn.clay:hover{background:var(--clay2)}
+.save-btn.danger{background:#B5251E}
+.save-btn.danger:hover{background:#8B1B18}
+.success-toast{
+  display:none;padding:10px 16px;background:#0D3B22;color:#A7F3C5;
+  border-radius:4px;font-size:13px;margin-bottom:16px;
+  border-left:3px solid #3CB371;align-items:center;gap:8px}
+.success-toast.show{display:flex}
+.staff-row{display:flex;align-items:center;gap:12px;padding:11px 0;
+  border-bottom:1px solid var(--cream2)}
+.staff-row:last-child{border-bottom:none}
+.staff-avatar{width:34px;height:34px;border-radius:50%;
+  background:var(--forest3);display:flex;align-items:center;justify-content:center;
+  color:white;font-size:13px;font-weight:600;flex-shrink:0}
+.staff-info{flex:1}
+.staff-name{font-size:14px;font-weight:500;color:var(--forest)}
+.staff-role{font-size:11px;color:var(--text3)}
+.role-badge{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:500}
+.role-admin{background:#FFF3CD;color:#856404}
+.role-staff{background:#CFE2FF;color:#084298}
+.role-customer{background:#D1E7DD;color:#0A3622}
+.divider{height:1px;background:var(--cream2);margin:18px 0}
+.info-box{background:var(--gold-pale);border:1px solid rgba(212,165,64,.3);
+  border-radius:4px;padding:12px 14px;font-size:13px;color:var(--text2);margin-bottom:16px}
+.info-box i{color:var(--gold);margin-right:6px}
+@media(max-width:900px){.settings-grid{grid-template-columns:1fr}.s-row{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- Toast notifications -->
+<div id="toast" class="success-toast"><i class="fas fa-check-circle"></i><span id="toastMsg">Saved!</span></div>
+
+<div class="settings-grid">
+
+  <!-- ── CHANGE PASSWORD ── -->
+  <div class="settings-card">
+    <div class="sc-head">
+      <div class="sc-icon"><i class="fas fa-lock"></i></div>
+      <div class="sc-title">Change Password</div>
+    </div>
+    <div class="sc-body">
+      <div class="info-box"><i class="fas fa-info-circle"></i>You are changing the password for <strong>{{ session.get('username') }}</strong></div>
+      <div class="s-group"><label>Current Password *</label><input type="password" id="curPwd" placeholder="••••••••"></div>
+      <div class="s-group"><label>New Password *</label><input type="password" id="newPwd" placeholder="At least 6 characters"></div>
+      <div class="s-group"><label>Confirm New Password *</label><input type="password" id="confPwd" placeholder="Repeat new password"></div>
+      <button class="save-btn clay" onclick="changePassword()"><i class="fas fa-key"></i> Update Password</button>
+    </div>
+  </div>
+
+  <!-- ── RESTAURANT INFO ── -->
+  <div class="settings-card">
+    <div class="sc-head">
+      <div class="sc-icon"><i class="fas fa-store"></i></div>
+      <div class="sc-title">Restaurant Info</div>
+    </div>
+    <div class="sc-body">
+      <div class="info-box"><i class="fas fa-info-circle"></i>These details appear on your website footer and contact page.</div>
+      <div class="s-group"><label>Restaurant Name</label><input type="text" id="rName" value="{{ config.RESTAURANT_NAME }}"></div>
+      <div class="s-row">
+        <div class="s-group"><label>Phone Number</label><input type="text" id="rPhone" value="{{ config.RESTAURANT_PHONE }}"></div>
+        <div class="s-group"><label>WhatsApp Number</label><input type="text" id="rWhatsapp" value="{{ config.RESTAURANT_WHATSAPP }}"></div>
+      </div>
+      <div class="s-group"><label>Email Address</label><input type="email" id="rEmail" value="{{ config.RESTAURANT_EMAIL }}"></div>
+      <div class="s-group"><label>Physical Address</label><textarea id="rAddress">{{ config.RESTAURANT_ADDRESS }}</textarea></div>
+      <div class="info-box" style="margin-top:4px"><i class="fas fa-exclamation-triangle"></i>To permanently save restaurant info changes, update your <code>.env</code> file or Railway environment variables.</div>
+    </div>
+  </div>
+
+  <!-- ── DELIVERY SETTINGS ── -->
+  <div class="settings-card">
+    <div class="sc-head">
+      <div class="sc-icon"><i class="fas fa-motorcycle"></i></div>
+      <div class="sc-title">Delivery Settings</div>
+    </div>
+    <div class="sc-body">
+      <div class="info-box"><i class="fas fa-info-circle"></i>Current delivery pricing configuration.</div>
+      <div class="s-row">
+        <div class="s-group">
+          <label>Base Delivery Fee (UGX)</label>
+          <input type="number" id="baseFee" value="{{ config.DELIVERY_BASE_FEE }}" min="0" step="500">
+        </div>
+        <div class="s-group">
+          <label>Fee Per KM (UGX)</label>
+          <input type="number" id="perKm" value="{{ config.DELIVERY_PER_KM }}" min="0" step="100">
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-group">
+          <label>Max Delivery Distance (km)</label>
+          <input type="number" id="maxKm" value="{{ config.MAX_DELIVERY_KM }}" min="1" max="50">
+        </div>
+        <div class="s-group">
+          <label>Free Delivery Above (UGX)</label>
+          <input type="number" id="freeMin" value="{{ config.FREE_DELIVERY_MIN }}" min="0" step="1000">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:14px">
+        <strong>Current formula:</strong><br>
+        Fee = UGX {{ "{:,}".format(config.DELIVERY_BASE_FEE) }} + (distance × UGX {{ "{:,}".format(config.DELIVERY_PER_KM) }})<br>
+        Free delivery on orders above UGX {{ "{:,}".format(config.FREE_DELIVERY_MIN) }}<br>
+        Max range: {{ config.MAX_DELIVERY_KM }}km
+      </div>
+      <div class="info-box"><i class="fas fa-exclamation-triangle"></i>To save delivery changes permanently, update your Railway environment variables or <code>app.py</code> Config class.</div>
+    </div>
+  </div>
+
+  <!-- ── STAFF MANAGEMENT ── -->
+  <div class="settings-card">
+    <div class="sc-head">
+      <div class="sc-icon"><i class="fas fa-users-cog"></i></div>
+      <div class="sc-title">Staff Management</div>
+    </div>
+    <div class="sc-body">
+      <!-- Add new staff -->
+      <div style="margin-bottom:18px">
+        <div style="font-size:12px;font-weight:600;color:var(--forest);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px">Add New Staff Member</div>
+        <div class="s-row">
+          <div class="s-group"><label>Username *</label><input type="text" id="staffUser" placeholder="e.g. nakato"></div>
+          <div class="s-group"><label>Phone</label><input type="text" id="staffPhone" placeholder="+256 7XX XXX XXX"></div>
+        </div>
+        <div class="s-row">
+          <div class="s-group"><label>Email *</label><input type="email" id="staffEmail" placeholder="staff@email.com"></div>
+          <div class="s-group">
+            <label>Role</label>
+            <select id="staffRole">
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="s-group"><label>Password *</label><input type="password" id="staffPwd" placeholder="At least 6 characters"></div>
+        <button class="save-btn" onclick="addStaff()"><i class="fas fa-user-plus"></i> Add Staff</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Existing staff list -->
+      <div style="font-size:12px;font-weight:600;color:var(--forest);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px">Current Users</div>
+      <div id="staffList">
+        {% for user in users %}
+        <div class="staff-row" id="user-{{ user.id }}">
+          <div class="staff-avatar" style="background:{{ 'var(--clay)' if user.role=='admin' else 'var(--forest3)' }}">
+            {{ user.username[0]|upper }}
+          </div>
+          <div class="staff-info">
+            <div class="staff-name">{{ user.username }}</div>
+            <div class="staff-role">{{ user.email }} · {{ user.phone or 'No phone' }}</div>
+          </div>
+          <span class="role-badge role-{{ user.role }}">{{ user.role|title }}</span>
+          {% if user.id != session.get('user_id') %}
+          <button onclick="deleteUser({{ user.id }}, '{{ user.username }}')"
+            style="border:none;background:none;color:#B5251E;font-size:14px;cursor:pointer;padding:4px"
+            title="Remove user">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          {% else %}
+          <span style="font-size:11px;color:var(--text3);padding:4px">(you)</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPENING HOURS ── -->
+  <div class="settings-card">
+    <div class="sc-head">
+      <div class="sc-icon"><i class="fas fa-clock"></i></div>
+      <div class="sc-title">Opening Hours</div>
+    </div>
+    <div class="sc-body">
+      <div class="info-box"><i class="fas fa-info-circle"></i>Displayed on your website footer and contact page.</div>
+      {% for day, hours in [
+        ('Monday – Friday', '7:00am – 10:00pm'),
+        ('Saturday',        '7:00am – 11:00pm'),
+        ('Sunday',          '8:00am – 9:00pm'),
+        ('Delivery Hours',  'Until 9:00pm daily'),
+      ] %}
+      <div class="s-row" style="margin-bottom:12px">
+        <div class="s-group" style="margin-bottom:0">
+          <label>Day</label>
+          <input type="text" value="{{ day }}" style="background:var(--cream)">
+        </div>
+        <div class="s-group" style="margin-bottom:0">
+          <label>Hours</label>
+          <input type="text" value="{{ hours }}">
+        </div>
+      </div>
+      {% endfor %}
+      <div class="info-box" style="margin-top:8px"><i class="fas fa-exclamation-triangle"></i>To save hours permanently, update <code>base.html</code> template directly.</div>
+    </div>
+  </div>
+
+  <!-- ── DANGER ZONE ── -->
+  <div class="settings-card" style="border-color:#F8D7DA">
+    <div class="sc-head" style="background:#FFF5F5;border-bottom-color:#F8D7DA">
+      <div class="sc-icon" style="background:#F8D7DA;color:#B5251E"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="sc-title" style="color:#B5251E">Danger Zone</div>
+    </div>
+    <div class="sc-body">
+      <div style="margin-bottom:20px">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px">Clear All Orders</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:10px">Permanently delete all orders from the database. This cannot be undone.</div>
+        <button class="save-btn danger" onclick="clearOrders()"><i class="fas fa-trash"></i> Clear All Orders</button>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px">Clear All Reservations</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:10px">Permanently delete all reservations. This cannot be undone.</div>
+        <button class="save-btn danger" onclick="clearReservations()"><i class="fas fa-calendar-times"></i> Clear All Reservations</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+function showToast(msg, ok=true){
+  const t=document.getElementById('toast');
+  const m=document.getElementById('toastMsg');
+  t.style.background=ok?'#0D3B22':'#4A0D0A';
+  t.style.color=ok?'#A7F3C5':'#FFBDBA';
+  t.style.borderLeftColor=ok?'#3CB371':'#E53935';
+  m.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ── Change Password ──────────────────────────────────
+function changePassword(){
+  const cur=document.getElementById('curPwd').value;
+  const np=document.getElementById('newPwd').value;
+  const cp=document.getElementById('confPwd').value;
+  if(!cur||!np||!cp){showToast('Please fill all password fields.',false);return}
+  if(np!==cp){showToast('New passwords do not match.',false);return}
+  if(np.length<6){showToast('Password must be at least 6 characters.',false);return}
+  fetch('/admin/settings/change-password',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({current:cur,new_password:np})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      showToast('✅ Password changed successfully!');
+      document.getElementById('curPwd').value='';
+      document.getElementById('newPwd').value='';
+      document.getElementById('confPwd').value='';
+    } else showToast(d.error||'Failed to change password.',false);
+  });
+}
+
+// ── Add Staff ────────────────────────────────────────
+function addStaff(){
+  const u=document.getElementById('staffUser').value.trim();
+  const e=document.getElementById('staffEmail').value.trim();
+  const p=document.getElementById('staffPwd').value;
+  const ph=document.getElementById('staffPhone').value.trim();
+  const r=document.getElementById('staffRole').value;
+  if(!u||!e||!p){showToast('Username, email and password are required.',false);return}
+  if(p.length<6){showToast('Password must be at least 6 characters.',false);return}
+  fetch('/admin/settings/add-staff',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:u,email:e,password:p,phone:ph,role:r})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      showToast(`✅ ${u} added as ${r}!`);
+      document.getElementById('staffUser').value='';
+      document.getElementById('staffEmail').value='';
+      document.getElementById('staffPwd').value='';
+      document.getElementById('staffPhone').value='';
+      setTimeout(()=>location.reload(),1500);
+    } else showToast(d.error||'Failed to add staff.',false);
+  });
+}
+
+// ── Delete User ──────────────────────────────────────
+function deleteUser(id,name){
+  if(!confirm(`Remove user "${name}"? This cannot be undone.`))return;
+  fetch('/admin/settings/delete-user',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:id})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      document.getElementById('user-'+id).remove();
+      showToast(`✅ ${name} removed.`);
+    } else showToast(d.error||'Failed to remove user.',false);
+  });
+}
+
+// ── Clear Orders ─────────────────────────────────────
+function clearOrders(){
+  if(!confirm('⚠️ Delete ALL orders permanently? This cannot be undone!'))return;
+  if(!confirm('Are you absolutely sure? All order history will be lost.'))return;
+  fetch('/admin/settings/clear-orders',{method:'POST'})
+  .then(r=>r.json()).then(d=>{
+    if(d.success)showToast('✅ All orders cleared.');
+    else showToast(d.error,false);
+  });
+}
+
+// ── Clear Reservations ───────────────────────────────
+function clearReservations(){
+  if(!confirm('⚠️ Delete ALL reservations permanently? This cannot be undone!'))return;
+  fetch('/admin/settings/clear-reservations',{method:'POST'})
+  .then(r=>r.json()).then(d=>{
+    if(d.success)showToast('✅ All reservations cleared.');
+    else showToast(d.error,false);
+  });
+}
+</script>
+{% endblock %}
