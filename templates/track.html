@@ -98,7 +98,7 @@
     {% endif %}
 
     <div style="margin-top:18px;text-align:center">
-      <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Hello%2C%20my%20order%20is%20{{ order.order_number }}" class="btn btn-outline-clay btn-sm" target="_blank">
+      <a href="https://wa.me/{{ settings.restaurant_whatsapp }}?text=Hello%2C%20my%20order%20is%20{{ order.order_number }}" class="btn btn-outline-clay btn-sm" target="_blank">
         <i class="fab fa-whatsapp"></i> Contact Us About This Order
       </a>
     </div>
@@ -107,7 +107,7 @@
 
   <div class="track-card" style="text-align:center;padding:24px">
     <p style="font-size:14px;color:var(--text3)">Need help with your order?</p>
-    <a href="tel:{{ config.RESTAURANT_PHONE }}" style="font-size:18px;color:var(--clay);font-weight:600;display:block;margin-top:8px">{{ config.RESTAURANT_PHONE }}</a>
+    <a href="tel:{{ settings.restaurant_phone }}" style="font-size:18px;color:var(--clay);font-weight:600;display:block;margin-top:8px">{{ settings.restaurant_phone }}</a>
   </div>
 </div>
 {% endblock %}

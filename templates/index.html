@@ -159,7 +159,7 @@
 <div class="stats-bar">
   <div class="stat-item"><div class="stat-num">500+</div><div class="stat-label">Happy Customers</div></div>
   <div class="stat-item"><div class="stat-num">25+</div><div class="stat-label">Ugandan Dishes</div></div>
-  <div class="stat-item"><div class="stat-num">20km</div><div class="stat-label">Delivery Range</div></div>
+  <div class="stat-item"><div class="stat-num">{{ settings.max_delivery_km_int }}km</div><div class="stat-label">Delivery Range</div></div>
   <div class="stat-item"><div class="stat-num">5★</div><div class="stat-label">Community Rating</div></div>
 </div>
 
@@ -208,7 +208,7 @@
     <div class="about-feats">
       <div class="feat"><div class="feat-icon"><i class="fas fa-leaf"></i></div><div><strong>Local Ingredients</strong><span>Fresh from nearby farms</span></div></div>
       <div class="feat"><div class="feat-icon"><i class="fas fa-fire"></i></div><div><strong>Traditional Methods</strong><span>Authentic Ugandan cooking</span></div></div>
-      <div class="feat"><div class="feat-icon"><i class="fas fa-motorcycle"></i></div><div><strong>Fast Delivery</strong><span>Up to 20km · UGX 5,000 base</span></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-motorcycle"></i></div><div><strong>Fast Delivery</strong><span>Up to {{ settings.max_delivery_km_int }}km · UGX {{ "{:,}".format(settings.delivery_base_fee_int) }} base</span></div></div>
       <div class="feat"><div class="feat-icon"><i class="fas fa-mobile-alt"></i></div><div><strong>MTN & Airtel MoMo</strong><span>Easy mobile money payment</span></div></div>
     </div>
     <a href="{{ url_for('about') }}" class="btn btn-forest">Our Full Story</a>
@@ -299,10 +299,10 @@
 <!-- CTA BANNER -->
 <section class="cta-banner">
   <h2>Hungry? Order Now &amp;<br>We'll Deliver to You</h2>
-  <p>Delivery across Lyantonde and surroundings up to 20km. Free delivery on orders over UGX 50,000!</p>
+  <p>Delivery across Lyantonde and surroundings up to {{ settings.max_delivery_km_int }}km. Free delivery on orders over UGX {{ "{:,}".format(settings.free_delivery_min_int) }}!</p>
   <div class="cta-banner-btns">
     <a href="{{ url_for('order') }}" class="btn btn-gold"><i class="fas fa-utensils"></i> Order Online</a>
-    <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="btn btn-outline-light" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Order</a>
+    <a href="https://wa.me/{{ settings.restaurant_whatsapp }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="btn btn-outline-light" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Order</a>
     <a href="{{ url_for('reserve') }}" class="btn btn-forest"><i class="fas fa-calendar-check"></i> Reserve Table</a>
   </div>
 </section>
