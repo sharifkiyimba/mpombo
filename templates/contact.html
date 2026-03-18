@@ -47,13 +47,13 @@
 </div>
 
 <div class="cta-cards">
-  <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="cta-card" target="_blank">
+  <a href="https://wa.me/{{ settings.restaurant_whatsapp }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="cta-card" target="_blank">
     <span class="cic">🛵</span><strong>Order Food</strong><span>Delivery or pickup via WhatsApp</span>
   </a>
   <a href="{{ url_for('reserve') }}" class="cta-card">
     <span class="cic">🍽️</span><strong>Reserve a Table</strong><span>Book your dining experience</span>
   </a>
-  <a href="tel:{{ config.RESTAURANT_PHONE }}" class="cta-card">
+  <a href="tel:{{ settings.restaurant_phone }}" class="cta-card">
     <span class="cic">📞</span><strong>Call Us</strong><span>Speak directly with our team</span>
   </a>
 </div>
@@ -69,23 +69,23 @@
     <div class="cinfo">
       <div class="cinfo-icon"><i class="fas fa-phone-alt"></i></div>
       <div><div class="cinfo-label">Phone</div>
-      <div class="cinfo-val"><a href="tel:{{ config.RESTAURANT_PHONE }}">{{ config.RESTAURANT_PHONE }}</a></div></div>
+      <div class="cinfo-val"><a href="tel:{{ settings.restaurant_phone }}">{{ settings.restaurant_phone }}</a></div></div>
     </div>
     <div class="cinfo">
       <div class="cinfo-icon"><i class="fab fa-whatsapp"></i></div>
       <div><div class="cinfo-label">WhatsApp</div>
-      <div class="cinfo-val"><a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" target="_blank">+{{ config.RESTAURANT_WHATSAPP }}</a></div></div>
+      <div class="cinfo-val"><a href="https://wa.me/{{ settings.restaurant_whatsapp }}" target="_blank">+{{ settings.restaurant_whatsapp }}</a></div></div>
     </div>
     <div class="cinfo">
       <div class="cinfo-icon"><i class="fas fa-envelope"></i></div>
       <div><div class="cinfo-label">Email</div>
-      <div class="cinfo-val"><a href="mailto:{{ config.RESTAURANT_EMAIL }}">{{ config.RESTAURANT_EMAIL }}</a></div></div>
+      <div class="cinfo-val"><a href="mailto:{{ settings.restaurant_email }}">{{ settings.restaurant_email }}</a></div></div>
     </div>
     <div class="hours-head">Opening Hours</div>
-    <div class="hour-row"><span>Monday – Friday</span><span class="hour-open">7:00am – 10:00pm</span></div>
-    <div class="hour-row"><span>Saturday</span><span class="hour-open">7:00am – 11:00pm</span></div>
-    <div class="hour-row"><span>Sunday</span><span class="hour-open">8:00am – 9:00pm</span></div>
-    <div class="hour-row"><span>Delivery Hours</span><span style="color:var(--gold2)">Until 9:00pm daily</span></div>
+    <div class="hour-row"><span>Monday – Friday</span><span class="hour-open">{{ settings.hours_mon_fri }}</span></div>
+    <div class="hour-row"><span>Saturday</span><span class="hour-open">{{ settings.hours_saturday }}</span></div>
+    <div class="hour-row"><span>Sunday</span><span class="hour-open">{{ settings.hours_sunday }}</span></div>
+    <div class="hour-row"><span>Delivery Hours</span><span style="color:var(--gold2)">{{ settings.hours_delivery }}</span></div>
   </div>
 
   <div class="cf-side">

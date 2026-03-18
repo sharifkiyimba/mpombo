@@ -167,7 +167,7 @@
           <i class="fas fa-check-circle"></i> Confirm Order
         </button>
         <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">
-          Or order via <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" target="_blank" style="color:var(--forest2)">WhatsApp</a>
+          Or order via <a href="https://wa.me/{{ settings.restaurant_whatsapp }}" target="_blank" style="color:var(--forest2)">WhatsApp</a>
         </p>
       </div>
     </div>
@@ -194,7 +194,7 @@
 <script>
 let cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
 let orderType='delivery';
-let deliveryFee=5000;
+let deliveryFee={{ settings.delivery_base_fee_int }};
 
 function ugx(n){return 'UGX '+parseInt(n).toLocaleString()}
 
@@ -253,9 +253,9 @@ function updateFee(){
   const d=parseFloat(document.getElementById('distance').value)||0;
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const fi=document.getElementById('feeInfo');
-  if(d>20){fi.innerHTML='❌ Exceeds 20km max range. Please contact us.';deliveryFee=null;return}
-  if(sub>=50000){deliveryFee=0;fi.innerHTML='🎉 <strong>Free delivery!</strong> Orders above UGX 50,000 qualify.'}
-  else{deliveryFee=5000+(d*1000);fi.innerHTML=`🚗 Delivery fee: <strong>${ugx(deliveryFee)}</strong> (${d}km × UGX 1,000 + UGX 5,000 base)`}
+  if(d>{{ settings.max_delivery_km_int }}){fi.innerHTML='❌ Exceeds {{ settings.max_delivery_km_int }}km max range. Please contact us.';deliveryFee=null;return}
+  if(sub>={{ settings.free_delivery_min_int }}){deliveryFee=0;fi.innerHTML='🎉 <strong>Free delivery!</strong> Orders above UGX {{ "{:,}".format(settings.free_delivery_min_int) }} qualify.'}
+  else{deliveryFee={{ settings.delivery_base_fee_int }}+(d*{{ settings.delivery_per_km_int }});fi.innerHTML=`🚗 Delivery fee: <strong>${ugx(deliveryFee)}</strong> (${d}km × UGX {{ "{:,}".format(settings.delivery_per_km_int) }} + UGX {{ "{:,}".format(settings.delivery_base_fee_int) }} base)`}
   render();
 }
 function render(){
@@ -288,7 +288,7 @@ function placeOrder(){
   const phone=document.getElementById('custPhone').value.trim();
   if(!name||!phone){alert('Please enter your name and phone number.');return}
   if(!cart.length){alert('Please add at least one item.');return}
-  if(deliveryFee===null&&orderType==='delivery'){alert('Distance exceeds 20km. Please contact us.');return}
+  if(deliveryFee===null&&orderType==='delivery'){alert('Distance exceeds {{ settings.max_delivery_km_int }}km. Please contact us.');return}
   const payMethod=document.querySelector('input[name="payment"]:checked').value;
   const distance=parseFloat(document.getElementById('distance').value)||0;
   fetch('/api/place-order',{

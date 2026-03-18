@@ -258,10 +258,10 @@
   <div class="kente"></div>
   <div class="footer-grid">
     <div>
-      <div class="footer-logo">Mpombo Family Restaurant</div>
+      <div class="footer-logo">{{ settings.restaurant_name }}</div>
       <p class="footer-desc">Serving the Pearl of Africa's finest flavours in Lyantonde. From Luwombo to Nyama Choma — every dish cooked with love and authentic Ugandan tradition.</p>
       <div class="footer-socials">
-        <a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" class="fsoc" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/{{ settings.restaurant_whatsapp }}" class="fsoc" target="_blank"><i class="fab fa-whatsapp"></i></a>
         <a href="#" class="fsoc"><i class="fab fa-facebook-f"></i></a>
         <a href="#" class="fsoc"><i class="fab fa-instagram"></i></a>
         <a href="#" class="fsoc"><i class="fab fa-twitter"></i></a>
@@ -281,19 +281,19 @@
     <div>
       <div class="footer-head">Hours</div>
       <ul class="footer-links">
-        <li><a>Mon–Fri: 7am – 10pm</a></li>
-        <li><a>Saturday: 7am – 11pm</a></li>
-        <li><a>Sunday: 8am – 9pm</a></li>
-        <li><a style="color:var(--gold2)">Delivery till 9pm daily</a></li>
-        <li><a style="color:var(--clay2)">Free delivery over UGX 50,000</a></li>
+        <li><a>Mon–Fri: {{ settings.hours_mon_fri }}</a></li>
+        <li><a>Saturday: {{ settings.hours_saturday }}</a></li>
+        <li><a>Sunday: {{ settings.hours_sunday }}</a></li>
+        <li><a style="color:var(--gold2)">{{ settings.hours_delivery }}</a></li>
+        <li><a style="color:var(--clay2)">Free delivery over UGX {{ '{:,}'.format(settings.free_delivery_min_int) }}</a></li>
       </ul>
     </div>
     <div>
       <div class="footer-head">Contact</div>
-      <div class="fci"><i class="fas fa-map-marker-alt"></i><span>Opposite Petro Uganda, Lyantonde District</span></div>
-      <div class="fci"><i class="fas fa-phone-alt"></i><a href="tel:{{ config.RESTAURANT_PHONE }}" style="color:rgba(255,255,255,.55)">{{ config.RESTAURANT_PHONE }}</a></div>
-      <div class="fci"><i class="fab fa-whatsapp"></i><a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}" target="_blank" style="color:rgba(255,255,255,.55)">Chat on WhatsApp</a></div>
-      <div class="fci"><i class="fas fa-envelope"></i><a href="mailto:{{ config.RESTAURANT_EMAIL }}" style="color:rgba(255,255,255,.55)">{{ config.RESTAURANT_EMAIL }}</a></div>
+      <div class="fci"><i class="fas fa-map-marker-alt"></i><span>{{ settings.restaurant_address }}</span></div>
+      <div class="fci"><i class="fas fa-phone-alt"></i><a href="tel:{{ settings.restaurant_phone }}" style="color:rgba(255,255,255,.55)">{{ settings.restaurant_phone }}</a></div>
+      <div class="fci"><i class="fab fa-whatsapp"></i><a href="https://wa.me/{{ settings.restaurant_whatsapp }}" target="_blank" style="color:rgba(255,255,255,.55)">Chat on WhatsApp</a></div>
+      <div class="fci"><i class="fas fa-envelope"></i><a href="mailto:{{ settings.restaurant_email }}" style="color:rgba(255,255,255,.55)">{{ settings.restaurant_email }}</a></div>
     </div>
   </div>
   <div class="footer-bottom">
@@ -305,7 +305,7 @@
   </div>
 </footer>
 
-<a href="https://wa.me/{{ config.RESTAURANT_WHATSAPP }}?text=Greetings%20Mpombo%20Family%2C%20I%20want%20to%20order!" class="wa-float" target="_blank" title="Order via WhatsApp">
+<a href="https://wa.me/{{ settings.restaurant_whatsapp }}?text=Greetings%20Mpombo%20Family%2C%20I%20want%20to%20order!" class="wa-float" target="_blank" title="Order via WhatsApp">
   <i class="fab fa-whatsapp"></i>
 </a>
 

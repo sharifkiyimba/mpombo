@@ -206,6 +206,33 @@ def fmt_ugx(amount):
 app.jinja_env.globals['fmt_ugx'] = fmt_ugx
 app.jinja_env.globals['now']     = datetime.now
 
+@app.context_processor
+def inject_settings():
+    """Make settings available in ALL templates automatically."""
+    try:
+        s = get_settings()
+    except:
+        s = {
+            'restaurant_name':     'Mpombo Family Restaurant',
+            'restaurant_phone':    '+256-789-123-456',
+            'restaurant_whatsapp': '256789123456',
+            'restaurant_email':    'info@mpombofamily.com',
+            'restaurant_address':  'Opposite Petro Uganda, Lyantonde District, Uganda',
+            'delivery_base_fee':   '5000',
+            'delivery_per_km':     '1000',
+            'max_delivery_km':     '20',
+            'free_delivery_min':   '50000',
+            'hours_mon_fri':       '7:00am – 10:00pm',
+            'hours_saturday':      '7:00am – 11:00pm',
+            'hours_sunday':        '8:00am – 9:00pm',
+            'hours_delivery':      'Until 9:00pm daily',
+            'delivery_base_fee_int': 5000,
+            'delivery_per_km_int':   1000,
+            'max_delivery_km_int':   20,
+            'free_delivery_min_int': 50000,
+        }
+    return dict(settings=s)
+
 # ── Decorators ────────────────────────────────────────────
 def login_required(f):
     @wraps(f)
