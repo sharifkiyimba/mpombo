@@ -1,0 +1,225 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Settings PIN — Mpombo Admin{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block admin_css %}
+.pin-wrap{
+  max-width:420px;margin:60px auto;
+}
+.pin-card{
+  background:white;border-radius:8px;
+  border:1px solid var(--cream2);
+  overflow:hidden;
+  box-shadow:0 8px 40px rgba(44,26,14,.12);
+}
+.pin-top{
+  background:var(--forest);padding:36px 32px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.pin-top::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:180px;height:180px;border-radius:50%;
+  background:rgba(212,165,64,.08);
+}
+.pin-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(212,165,64,.15);border:2px solid rgba(212,165,64,.3);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;font-size:28px;position:relative;z-index:1;
+}
+.pin-title{
+  font-family:'Yeseva One',serif;font-size:24px;
+  color:var(--cream);margin-bottom:6px;position:relative;z-index:1;
+}
+.pin-sub{
+  font-size:13px;color:rgba(255,255,255,.5);
+  position:relative;z-index:1;
+}
+.pin-body{padding:32px;}
+.pin-dots{
+  display:flex;justify-content:center;gap:14px;margin-bottom:28px;
+}
+.pin-dot{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--cream2);border:2px solid #DDD3C4;
+  transition:all .2s;
+}
+.pin-dot.filled{background:var(--forest);border-color:var(--forest)}
+.pin-dot.error{background:#B5251E;border-color:#B5251E;animation:shake .4s ease}
+.pin-pad{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-bottom:20px;
+}
+.pin-btn{
+  padding:16px;border:1.5px solid var(--cream2);border-radius:6px;
+  background:white;font-family:'Outfit',sans-serif;
+  font-size:20px;font-weight:600;color:var(--forest);
+  cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1;
+}
+.pin-btn:hover{background:var(--cream);border-color:var(--clay)}
+.pin-btn:active{transform:scale(.95);background:var(--cream2)}
+.pin-btn .sub{font-size:8px;letter-spacing:1.5px;color:var(--text3);margin-top:3px;font-weight:400}
+.pin-btn.del{font-size:18px;color:var(--text3)}
+.pin-btn.del:hover{color:var(--clay);border-color:var(--clay)}
+.pin-btn.enter{
+  background:var(--forest);color:white;border-color:var(--forest);
+  font-size:13px;letter-spacing:1.5px;text-transform:uppercase;
+}
+.pin-btn.enter:hover{background:var(--forest2)}
+.pin-error{
+  text-align:center;font-size:13px;color:#B5251E;
+  min-height:20px;margin-bottom:8px;
+  display:none;
+}
+.pin-error.show{display:block}
+.pin-hint{
+  text-align:center;font-size:12px;color:var(--text3);
+  padding-top:16px;border-top:1px solid var(--cream2);
+}
+.pin-hint a{color:var(--clay);cursor:pointer}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+{% endblock %}
+
+{% block admin_content %}
+<div class="pin-wrap">
+  <div class="pin-card">
+    <div class="pin-top">
+      <div class="pin-icon">🔐</div>
+      <div class="pin-title">Settings PIN</div>
+      <div class="pin-sub">Enter your PIN to access Settings</div>
+    </div>
+    <div class="pin-body">
+      <!-- PIN dots display -->
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+      </div>
+
+      <!-- Error message -->
+      <div class="pin-error" id="pinError">❌ Incorrect PIN. Try again.</div>
+
+      <!-- Number pad -->
+      <div class="pin-pad">
+        <button class="pin-btn" onclick="addDigit('1')">1<span class="sub"></span></button>
+        <button class="pin-btn" onclick="addDigit('2')">2<span class="sub">ABC</span></button>
+        <button class="pin-btn" onclick="addDigit('3')">3<span class="sub">DEF</span></button>
+        <button class="pin-btn" onclick="addDigit('4')">4<span class="sub">GHI</span></button>
+        <button class="pin-btn" onclick="addDigit('5')">5<span class="sub">JKL</span></button>
+        <button class="pin-btn" onclick="addDigit('6')">6<span class="sub">MNO</span></button>
+        <button class="pin-btn" onclick="addDigit('7')">7<span class="sub">PQRS</span></button>
+        <button class="pin-btn" onclick="addDigit('8')">8<span class="sub">TUV</span></button>
+        <button class="pin-btn" onclick="addDigit('9')">9<span class="sub">WXYZ</span></button>
+        <button class="pin-btn del" onclick="delDigit()">⌫</button>
+        <button class="pin-btn" onclick="addDigit('0')">0</button>
+        <button class="pin-btn enter" onclick="submitPin()">Enter</button>
+      </div>
+
+      <div class="pin-hint">
+        Default PIN is <strong>1234</strong> — change it in Settings after login.<br>
+        <a onclick="goBack()">← Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+let pin = '';
+const MAX = 4;
+
+function updateDots(){
+  // Expand dots if PIN is longer than 4
+  const total = Math.max(MAX, pin.length);
+  const dotsEl = document.getElementById('pinDots');
+  dotsEl.innerHTML = '';
+  for(let i=0; i<Math.max(4, pin.length+1 > 4 ? pin.length : 4); i++){
+    const d = document.createElement('div');
+    d.className = 'pin-dot' + (i < pin.length ? ' filled' : '');
+    dotsEl.appendChild(d);
+  }
+}
+
+function addDigit(d){
+  if(pin.length >= 20) return; // max length safety
+  pin += d;
+  updateDots();
+  clearError();
+  // Auto-submit at 4 digits for quick PIN entry
+  if(pin.length === 4) setTimeout(submitPin, 200);
+}
+
+function delDigit(){
+  pin = pin.slice(0, -1);
+  updateDots();
+  clearError();
+}
+
+function clearError(){
+  const err = document.getElementById('pinError');
+  err.classList.remove('show');
+  document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('error'));
+}
+
+function showError(msg){
+  const err = document.getElementById('pinError');
+  err.textContent = '❌ ' + msg;
+  err.classList.add('show');
+  document.querySelectorAll('.pin-dot').forEach(d => {
+    d.classList.add('error');
+    d.classList.remove('filled');
+  });
+  setTimeout(()=>{
+    pin = '';
+    updateDots();
+    clearError();
+  }, 1200);
+}
+
+function submitPin(){
+  if(!pin){ return; }
+  fetch('/admin/settings/verify-pin', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({pin: pin})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if(d.success){
+      // Flash success then redirect
+      document.querySelectorAll('.pin-dot').forEach(dot => {
+        dot.style.background = 'var(--forest3)';
+        dot.style.borderColor = 'var(--forest3)';
+      });
+      setTimeout(() => window.location.href = '/admin/settings', 400);
+    } else {
+      showError(d.error || 'Incorrect PIN. Try again.');
+      pin = '';
+    }
+  })
+  .catch(() => showError('Connection error. Try again.'));
+}
+
+function goBack(){
+  window.location.href = '/dashboard';
+}
+
+// Allow keyboard input
+document.addEventListener('keydown', e => {
+  if(e.key >= '0' && e.key <= '9') addDigit(e.key);
+  else if(e.key === 'Backspace') delDigit();
+  else if(e.key === 'Enter') submitPin();
+});
+
+updateDots();
+</script>
+{% endblock %}

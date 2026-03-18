@@ -879,15 +879,76 @@ def admin_customers():
 #  ADMIN — SETTINGS
 # ═══════════════════════════════════════════════════════════
 
+@app.route('/admin/settings/verify-pin', methods=['POST'])
+@admin_required
+def verify_settings_pin():
+    """Verify the settings PIN and grant temporary session access."""
+    try:
+        data = request.json
+        entered = data.get('pin', '').strip()
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT setting_value FROM site_settings WHERE setting_key='settings_pin'")
+        row = cur.fetchone()
+        cur.close()
+        # Default PIN is 1234 if not set
+        stored_pin = row['setting_value'] if row else '1234'
+        if entered == stored_pin:
+            session['settings_unlocked'] = True
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Incorrect PIN. Try again.'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/settings/lock', methods=['POST'])
+@admin_required
+def lock_settings():
+    """Lock settings — require PIN again next time."""
+    session.pop('settings_unlocked', None)
+    return jsonify({'success': True})
+
 @app.route('/admin/settings')
 @admin_required
 def admin_settings():
+    # Require PIN unlock before showing settings
+    if not session.get('settings_unlocked'):
+        return render_template('admin/settings_pin.html', config=Config)
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM users ORDER BY role, username")
     users = cur.fetchall()
     cur.close()
     s = get_settings()
     return render_template('admin/settings.html', config=Config, users=users, settings=s)
+
+@app.route('/admin/settings/save-pin', methods=['POST'])
+@admin_required
+def settings_save_pin():
+    """Save a new settings PIN."""
+    try:
+        data    = request.json
+        new_pin = data.get('new_pin', '').strip()
+        cur_pin = data.get('current_pin', '').strip()
+        if len(new_pin) < 4:
+            return jsonify({'success': False, 'error': 'PIN must be at least 4 characters'})
+        # Verify current PIN first
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT setting_value FROM site_settings WHERE setting_key='settings_pin'")
+        row = cur.fetchone()
+        stored = row['setting_value'] if row else '1234'
+        if cur_pin != stored:
+            cur.close()
+            return jsonify({'success': False, 'error': 'Current PIN is incorrect'})
+        # Save new PIN
+        cur.execute("""
+            INSERT INTO site_settings (setting_key, setting_value)
+            VALUES ('settings_pin', %s)
+            ON DUPLICATE KEY UPDATE setting_value = %s
+        """, (new_pin, new_pin))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/admin/settings/save-restaurant', methods=['POST'])
 @admin_required

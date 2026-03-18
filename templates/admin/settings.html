@@ -78,6 +78,27 @@
     </div>
   </div>
 
+  <!-- CHANGE SETTINGS PIN -->
+  <div class="settings-card">
+    <div class="sc-head">
+      <div class="sc-icon" style="background:rgba(28,61,46,.1);color:var(--forest)"><i class="fas fa-shield-alt"></i></div>
+      <div class="sc-title">Settings PIN</div>
+    </div>
+    <div class="sc-body">
+      <div style="background:var(--gold-pale);border:1px solid rgba(212,165,64,.3);border-radius:4px;padding:11px 14px;font-size:13px;color:var(--text2);margin-bottom:16px">
+        <i class="fas fa-info-circle" style="color:var(--gold);margin-right:6px"></i>
+        This PIN is required every time someone tries to open the Settings page. It is separate from your login password.
+      </div>
+      <div class="s-group"><label>Current PIN *</label><input type="password" id="curPin" placeholder="Enter current PIN" maxlength="20"></div>
+      <div class="s-group"><label>New PIN *</label><input type="password" id="newPin" placeholder="Minimum 4 digits" maxlength="20"></div>
+      <div class="s-group"><label>Confirm New PIN *</label><input type="password" id="confPin" placeholder="Repeat new PIN" maxlength="20"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="save-btn" onclick="savePin()"><i class="fas fa-shield-alt"></i> Update PIN</button>
+        <button class="save-btn" style="background:var(--text3)" onclick="lockSettings()"><i class="fas fa-lock"></i> Lock Settings Now</button>
+      </div>
+    </div>
+  </div>
+
   <!-- RESTAURANT INFO -->
   <div class="settings-card">
     <div class="sc-head">
@@ -276,6 +297,30 @@ function post(url, data){
 }
 
 // ── Change Password ──────────────────────────
+function savePin(){
+  const cur=document.getElementById('curPin').value;
+  const np=document.getElementById('newPin').value;
+  const cp=document.getElementById('confPin').value;
+  if(!cur||!np||!cp){showToast('Please fill all PIN fields.',false);return}
+  if(np!==cp){showToast('New PINs do not match.',false);return}
+  if(np.length<4){showToast('PIN must be at least 4 characters.',false);return}
+  post('/admin/settings/save-pin',{current_pin:cur,new_pin:np}).then(d=>{
+    if(d.success){
+      showToast('✅ Settings PIN updated!');
+      ['curPin','newPin','confPin'].forEach(id=>document.getElementById(id).value='');
+    } else showToast(d.error||'Failed to update PIN.',false);
+  });
+}
+
+function lockSettings(){
+  post('/admin/settings/lock',{}).then(d=>{
+    if(d.success){
+      showToast('🔒 Settings locked.');
+      setTimeout(()=>window.location.href='/admin/settings',1200);
+    }
+  });
+}
+
 function changePassword(){
   const cur=document.getElementById('curPwd').value;
   const np=document.getElementById('newPwd').value;

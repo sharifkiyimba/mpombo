@@ -181,8 +181,13 @@
   <a href="{{ url_for('menu') }}" class="sb-link" target="_blank"><i class="fas fa-utensils"></i> Menu Page</a>
 
   <div class="sb-section">Account</div>
-  <a href="{{ url_for('admin_settings') }}" class="sb-link {% if request.endpoint=='admin_settings' or request.endpoint and 'settings' in request.endpoint %}active{% endif %}">
+  <a href="{{ url_for('admin_settings') }}" class="sb-link {% if request.endpoint and 'settings' in request.endpoint %}active{% endif %}">
     <i class="fas fa-cog"></i> Settings
+    {% if not session.get('settings_unlocked') %}
+    <span style="margin-left:auto;font-size:10px;color:rgba(212,165,64,.4)"><i class="fas fa-lock"></i></span>
+    {% else %}
+    <span style="margin-left:auto;font-size:10px;color:var(--forest3)"><i class="fas fa-lock-open"></i></span>
+    {% endif %}
   </a>
 
   <div class="sb-bottom">
