@@ -912,7 +912,100 @@ def lock_settings():
 def admin_settings():
     # Require PIN unlock before showing settings
     if not session.get('settings_unlocked'):
-        return render_template('admin/settings_pin.html', config=Config)
+        try:
+            return render_template('admin/settings_pin.html', config=Config)
+        except:
+            # Fallback inline PIN page if template missing
+            return '''<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settings PIN</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Yeseva+One&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,sans-serif;background:#EDE8E0;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:white;border-radius:10px;overflow:hidden;width:360px;box-shadow:0 8px 40px rgba(0,0,0,.15)}
+.top{background:#1C3D2E;padding:32px;text-align:center;color:white}
+.icon{font-size:40px;margin-bottom:12px}
+h1{font-family:"Yeseva One",serif;font-size:22px;margin-bottom:6px}
+p{font-size:13px;opacity:.6}
+.body{padding:28px}
+.dots{display:flex;justify-content:center;gap:12px;margin-bottom:24px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid #DDD;background:white;transition:all .2s}
+.dot.on{background:#1C3D2E;border-color:#1C3D2E}
+.dot.err{background:#B5251E;border-color:#B5251E}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.btn{padding:16px;border:1.5px solid #EEE;border-radius:6px;background:white;
+  font-size:20px;font-weight:600;color:#1C3D2E;cursor:pointer;transition:all .2s}
+.btn:hover{background:#F2EAD8;border-color:#C0592A}
+.btn.enter{background:#1C3D2E;color:white;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.btn.enter:hover{background:#275A42}
+.err-msg{text-align:center;color:#B5251E;font-size:13px;min-height:18px;margin-bottom:8px}
+.hint{text-align:center;font-size:12px;color:#9B7A52;border-top:1px solid #EEE;padding-top:14px}
+.hint a{color:#C0592A;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="icon">🔐</div>
+    <h1>Settings PIN</h1>
+    <p>Enter your PIN to access Settings</p>
+  </div>
+  <div class="body">
+    <div class="dots" id="dots">
+      <div class="dot" id="d0"></div>
+      <div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div>
+      <div class="dot" id="d3"></div>
+    </div>
+    <div class="err-msg" id="err"></div>
+    <div class="pad">
+      <button class="btn" onclick="add(1)">1</button>
+      <button class="btn" onclick="add(2)">2</button>
+      <button class="btn" onclick="add(3)">3</button>
+      <button class="btn" onclick="add(4)">4</button>
+      <button class="btn" onclick="add(5)">5</button>
+      <button class="btn" onclick="add(6)">6</button>
+      <button class="btn" onclick="add(7)">7</button>
+      <button class="btn" onclick="add(8)">8</button>
+      <button class="btn" onclick="add(9)">9</button>
+      <button class="btn" onclick="del()">⌫</button>
+      <button class="btn" onclick="add(0)">0</button>
+      <button class="btn enter" onclick="submit()">Enter</button>
+    </div>
+    <div class="hint">Default PIN is <strong>1234</strong><br><a onclick="location.href='/dashboard'">← Back to Dashboard</a></div>
+  </div>
+</div>
+<script>
+let p="";
+function upd(){
+  const n=Math.max(4,p.length);
+  const d=document.getElementById("dots");
+  d.innerHTML="";
+  for(let i=0;i<n;i++){
+    const dot=document.createElement("div");
+    dot.className="dot"+(i<p.length?" on":"");
+    d.appendChild(dot);
+  }
+}
+function add(d){p+=d;upd();document.getElementById("err").textContent="";if(p.length===4)setTimeout(submit,200)}
+function del(){p=p.slice(0,-1);upd()}
+function submit(){
+  if(!p)return;
+  fetch("/admin/settings/verify-pin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pin:p})})
+  .then(r=>r.json()).then(d=>{
+    if(d.success){document.querySelectorAll(".dot").forEach(x=>{x.style.background="#347A58";x.style.borderColor="#347A58"});setTimeout(()=>location.href="/admin/settings",400)}
+    else{document.getElementById("err").textContent="❌ "+d.error;document.querySelectorAll(".dot").forEach(x=>{x.style.background="#B5251E";x.style.borderColor="#B5251E"});setTimeout(()=>{p="";upd();document.getElementById("err").textContent=""},1200)}
+  });
+}
+document.addEventListener("keydown",e=>{if(e.key>="0"&&e.key<="9")add(e.key);else if(e.key==="Backspace")del();else if(e.key==="Enter")submit()});
+upd();
+</script>
+</body>
+</html>'''
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM users ORDER BY role, username")
     users = cur.fetchall()
