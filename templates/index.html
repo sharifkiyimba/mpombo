@@ -15,39 +15,44 @@
 .hero-title{font-family:'Yeseva One',serif;font-size:clamp(44px,8vw,92px);
   color:white;line-height:1.02;margin-bottom:20px;animation:fadeUp .8s ease .4s both}
 .hero-title span{color:var(--clay2)}
-.hero-sub{font-size:17px;color:rgba(255,255,255,.72);max-width:540px;
-  line-height:1.75;margin-bottom:40px;animation:fadeUp .8s ease .6s both}
+.hero-sub{font-size:18px;color:rgba(255,255,255,.82);max-width:540px;
+  line-height:1.8;margin-bottom:40px;animation:fadeUp .8s ease .6s both;font-weight:400}
 .hero-actions{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .8s ease .8s both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 
 .stats-bar{background:var(--forest);display:grid;grid-template-columns:repeat(4,1fr)}
-.stat-item{padding:28px 20px;text-align:center;border-right:1px solid rgba(255,255,255,.1)}
+.stat-item{padding:30px 20px;text-align:center;border-right:1px solid rgba(255,255,255,.12)}
 .stat-item:last-child{border-right:none}
-.stat-num{font-family:'Yeseva One',serif;font-size:36px;color:var(--gold2);line-height:1}
-.stat-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:6px}
+.stat-num{font-family:'Yeseva One',serif;font-size:38px;color:var(--gold2);line-height:1;letter-spacing:-.5px}
+.stat-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:8px;font-weight:500}
 
 .featured{padding:88px 5%;max-width:1280px;margin:0 auto}
 .section-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px}
 .menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.mcard{background:white;border-radius:6px;overflow:hidden;
-  box-shadow:0 4px 20px rgba(44,26,14,.07);transition:all .4s}
-.mcard:hover{transform:translateY(-8px);box-shadow:0 16px 48px rgba(44,26,14,.14)}
-.mcard-img{height:210px;overflow:hidden;position:relative}
-.mcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
-.mcard:hover .mcard-img img{transform:scale(1.06)}
-.mcard-badge{position:absolute;top:14px;right:14px;background:var(--clay);color:white;
-  font-size:10px;letter-spacing:1px;padding:3px 10px;border-radius:2px;font-weight:500}
-.mcard-badge.veg{background:var(--forest3)}
+.mcard{background:white;border-radius:10px;overflow:hidden;
+  box-shadow:0 2px 12px rgba(44,26,14,.08);transition:all .4s;
+  border:1px solid var(--cream2)}
+.mcard:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(44,26,14,.16);border-color:var(--clay-pale)}
+.mcard-img{height:200px;overflow:hidden;position:relative}
+.mcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.mcard:hover .mcard-img img{transform:scale(1.05)}
+.mcard-badge{position:absolute;top:12px;right:12px;background:var(--clay);color:white;
+  font-size:10px;letter-spacing:.5px;padding:4px 12px;border-radius:20px;font-weight:600;
+  box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.mcard-badge.veg{background:var(--forest2)}
 .mcard-body{padding:20px}
-.mcard-cat{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--clay2);margin-bottom:5px}
-.mcard-name{font-family:'Libre Baskerville',serif;font-size:19px;color:var(--forest);margin-bottom:6px}
-.mcard-desc{font-size:13px;color:var(--text3);line-height:1.55;margin-bottom:16px}
+.mcard-cat{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--clay2);
+  margin-bottom:6px;font-weight:600}
+.mcard-name{font-family:'Yeseva One',serif;font-size:18px;color:var(--forest);
+  margin-bottom:6px;line-height:1.2}
+.mcard-desc{font-size:13px;color:var(--text3);line-height:1.6;margin-bottom:16px}
 .mcard-foot{display:flex;justify-content:space-between;align-items:center}
 .mcard-price{font-family:'Yeseva One',serif;font-size:20px;color:var(--clay)}
-.mcard-price small{font-family:'Outfit',sans-serif;font-size:12px;color:var(--text3)}
-.add-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--forest);
-  color:white;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .3s}
-.add-btn:hover{background:var(--clay);transform:rotate(90deg)}
+.mcard-price small{font-family:'Outfit',sans-serif;font-size:12px;color:var(--text4);font-weight:400}
+.add-btn{width:38px;height:38px;border-radius:50%;border:none;background:var(--forest);
+  color:white;font-size:18px;display:flex;align-items:center;justify-content:center;
+  transition:all .3s;box-shadow:0 2px 8px rgba(28,61,46,.3)}
+.add-btn:hover{background:var(--clay);transform:rotate(90deg) scale(1.1)}
 
 .about-strip{display:grid;grid-template-columns:1fr 1fr}
 .about-img{position:relative;overflow:hidden;min-height:500px}
@@ -85,12 +90,13 @@
 .steps::before{content:'';position:absolute;top:36px;left:12%;right:12%;
   height:1px;background:var(--clay-pale)}
 .step{text-align:center;position:relative}
-.step-circle{width:72px;height:72px;border-radius:50%;
-  border:2px solid var(--clay);background:white;
+.step-circle{width:76px;height:76px;border-radius:50%;
+  border:2.5px solid var(--clay);background:white;
   display:flex;align-items:center;justify-content:center;
-  margin:0 auto 20px;font-size:26px;position:relative;z-index:1}
-.step-title{font-family:'Libre Baskerville',serif;font-size:17px;color:var(--forest);margin-bottom:8px}
-.step-desc{font-size:13px;color:var(--text3);line-height:1.6}
+  margin:0 auto 22px;font-size:28px;position:relative;z-index:1;
+  box-shadow:0 4px 16px rgba(184,82,31,.2)}
+.step-title{font-family:'Yeseva One',serif;font-size:18px;color:var(--forest);margin-bottom:8px}
+.step-desc{font-size:14px;color:var(--text3);line-height:1.65}
 
 .payments{padding:56px 5%;background:var(--cream2);text-align:center}
 .pay-icons{display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap;margin-top:32px}
@@ -177,7 +183,7 @@
     {% for cat in menu %}{% for item in cat.dishes %}{% if shown.count < 6 %}
     <div class="mcard">
       <div class="mcard-img">
-        <img src="{{ item.img }}" alt="{{ item.name }}" loading="lazy">
+        <img src="{{ menu_images.get(item.id, item.img) }}" alt="{{ item.name }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=60'">
         {% if item.badge %}<span class="mcard-badge {{ 'veg' if item.veg else '' }}">{{ item.badge }}</span>{% endif %}
       </div>
       <div class="mcard-body">
@@ -224,7 +230,7 @@
   <div class="specials-grid">
     {% for cat in menu %}{% if cat.name=='Ugandan Specials' %}{% for item in cat.dishes %}
     <div class="scard">
-      <div class="scard-img"><img src="{{ item.img }}" alt="{{ item.name }}" loading="lazy"></div>
+      <div class="scard-img"><img src="{{ menu_images.get(item.id, item.img) }}" alt="{{ item.name }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=60'"></div>
       <div class="scard-body">
         <h3 class="scard-name">{{ item.name }}</h3>
         <p class="scard-desc">{{ item.desc[:95] }}...</p>

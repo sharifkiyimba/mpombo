@@ -49,6 +49,30 @@
 .empty-msg i{font-size:32px;color:var(--cream2);display:block;margin-bottom:10px}
 .fee-info{background:var(--gold-pale);padding:11px 14px;border-radius:4px;
   font-size:13px;color:var(--text2);margin-top:-10px;margin-bottom:16px}
+.pkg-section{
+  background:var(--forest-light);border:1.5px solid rgba(28,61,46,.15);
+  border-radius:8px;padding:20px;margin-bottom:16px;
+}
+.pkg-title{font-size:14px;font-weight:700;color:var(--forest);
+  margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.pkg-sub{font-size:12px;color:var(--text3);margin-bottom:16px}
+.pkg-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid rgba(28,61,46,.1)}
+.pkg-row:last-child{border-bottom:none}
+.pkg-info{flex:1}
+.pkg-name{font-size:14px;font-weight:600;color:var(--forest)}
+.pkg-price{font-size:12px;color:var(--clay);margin-top:2px}
+.pkg-ctrl{display:flex;align-items:center;gap:10px}
+.pkg-btn{width:32px;height:32px;border-radius:50%;
+  border:1.5px solid var(--border);background:white;
+  font-size:16px;font-weight:700;color:var(--text2);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;cursor:pointer}
+.pkg-btn:hover{background:var(--clay);border-color:var(--clay);color:white}
+.pkg-num{font-size:16px;font-weight:700;min-width:24px;
+  text-align:center;color:var(--forest)}
+.pkg-total{font-size:13px;font-weight:600;color:var(--clay);
+  min-width:70px;text-align:right}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;
   display:flex;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .3s}
@@ -70,7 +94,7 @@
       <div class="menu-mini" id="menuMini">
         {% for cat in menu %}{% for item in cat.dishes %}
         <div class="mmini" id="mc{{ item.id }}" onclick="selectItem(event,{{ item.id }},'{{ item.name|e }}',{{ item.price }},'{{ item.img }}')">
-          <img src="{{ item.img }}" alt="{{ item.name }}">
+          <img src="{{ menu_images.get(item.id, item.img) }}" alt="{{ item.name }}" onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=100&q=60'">
           <div style="flex:1">
             <div class="mmini-cat">{{ cat.name }}</div>
             <div class="mmini-name">{{ item.name }}</div>
@@ -110,6 +134,62 @@
           <input type="number" id="distance" min="0" max="20" step="0.5" placeholder="e.g. 3" oninput="updateFee()">
         </div>
         <div class="fee-info" id="feeInfo">📍 Enter your distance to calculate the delivery fee.</div>
+      </div>
+    </div>
+
+    <!-- Step 2b: Packaging -->
+    <div class="order-panel" id="packaging-panel">
+      <div class="op-title">📦 Packaging</div>
+      <div style="background:var(--gold-pale);border-radius:6px;padding:12px 16px;
+        font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">
+        <i class="fas fa-info-circle" style="color:var(--gold);margin-right:6px"></i>
+        Select packaging for your order. Silverplates keep food fresh and warm during delivery.
+      </div>
+      <div class="pkg-section">
+        <!-- Silverplate -->
+        <div class="pkg-row">
+          <div class="pkg-info">
+            <div class="pkg-name">🍽️ Silverplate</div>
+            <div class="pkg-price">UGX 1,000 each</div>
+          </div>
+          <div class="pkg-ctrl">
+            <button class="pkg-btn" onclick="changePkg('plate',-1)">−</button>
+            <span class="pkg-num" id="plateNum">0</span>
+            <button class="pkg-btn" onclick="changePkg('plate',1)">+</button>
+          </div>
+          <div class="pkg-total" id="plateCost">UGX 0</div>
+        </div>
+        <!-- Small juice glass -->
+        <div class="pkg-row">
+          <div class="pkg-info">
+            <div class="pkg-name">🥤 Small Juice Glass</div>
+            <div class="pkg-price">UGX 1,000 each</div>
+          </div>
+          <div class="pkg-ctrl">
+            <button class="pkg-btn" onclick="changePkg('smallglass',-1)">−</button>
+            <span class="pkg-num" id="smallglassNum">0</span>
+            <button class="pkg-btn" onclick="changePkg('smallglass',1)">+</button>
+          </div>
+          <div class="pkg-total" id="smallglassCost">UGX 0</div>
+        </div>
+        <!-- Big juice glass -->
+        <div class="pkg-row">
+          <div class="pkg-info">
+            <div class="pkg-name">🧃 Big Juice Glass</div>
+            <div class="pkg-price">UGX 2,000 each</div>
+          </div>
+          <div class="pkg-ctrl">
+            <button class="pkg-btn" onclick="changePkg('bigglass',-1)">−</button>
+            <span class="pkg-num" id="bigglassNum">0</span>
+            <button class="pkg-btn" onclick="changePkg('bigglass',1)">+</button>
+          </div>
+          <div class="pkg-total" id="bigglassCost">UGX 0</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:12px 16px;background:white;border-radius:6px;border:1.5px solid var(--border)">
+        <span style="font-size:14px;font-weight:600;color:var(--forest)">Total Packaging</span>
+        <span style="font-family:'Yeseva One',serif;font-size:18px;color:var(--clay)" id="pkgTotal">UGX 0</span>
       </div>
     </div>
 
@@ -162,6 +242,7 @@
       <div id="sumDetails" style="display:none">
         <div class="sum-row"><span>Subtotal</span><span id="sumSub" style="font-weight:600">UGX 0</span></div>
         <div class="sum-row"><span>Delivery Fee</span><span id="sumFee" style="color:var(--clay);font-weight:500">UGX 0</span></div>
+        <div class="sum-row"><span>Packaging</span><span id="sumPkg" style="color:var(--forest2);font-weight:500">None</span></div>
         <div class="sum-row sum-total"><span>Total</span><span id="sumTotal">UGX 0</span></div>
         <button onclick="placeOrder()" class="btn btn-clay" style="width:100%;justify-content:center;margin-top:18px">
           <i class="fas fa-check-circle"></i> Confirm Order
@@ -195,6 +276,33 @@
 let cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
 let orderType='delivery';
 let deliveryFee={{ settings.delivery_base_fee_int }};
+// Packaging
+const PKG = {
+  plate:     {qty:0, price:1000,  numId:'plateNum',    costId:'plateCost'},
+  smallglass:{qty:0, price:1000,  numId:'smallglassNum', costId:'smallglassCost'},
+  bigglass:  {qty:0, price:2000,  numId:'bigglassNum',   costId:'bigglassCost'},
+};
+function changePkg(type, delta){
+  const p = PKG[type];
+  p.qty = Math.max(0, p.qty + delta);
+  document.getElementById(p.numId).textContent = p.qty;
+  document.getElementById(p.costId).textContent = 'UGX ' + (p.qty * p.price).toLocaleString();
+  updatePkgTotal();
+  render();
+}
+function pkgTotal(){
+  return Object.values(PKG).reduce((s,p)=>s+p.qty*p.price, 0);
+}
+function updatePkgTotal(){
+  document.getElementById('pkgTotal').textContent = 'UGX ' + pkgTotal().toLocaleString();
+}
+function getPkgList(){
+  const list=[];
+  if(PKG.plate.qty>0)     list.push({name:'Silverplate',      qty:PKG.plate.qty,     price:1000});
+  if(PKG.smallglass.qty>0)list.push({name:'Small Juice Glass', qty:PKG.smallglass.qty,price:1000});
+  if(PKG.bigglass.qty>0)  list.push({name:'Big Juice Glass',   qty:PKG.bigglass.qty,  price:2000});
+  return list;
+}
 
 function ugx(n){return 'UGX '+parseInt(n).toLocaleString()}
 
@@ -245,6 +353,9 @@ function setType(t){
     document.getElementById('to-'+x).classList.toggle('sel',x===t);
   });
   document.getElementById('delivery-fields').style.display=t==='delivery'?'block':'none';
+  // Show packaging only for delivery and pickup
+  const showPkg = t==='delivery'||t==='pickup';
+  document.getElementById('packaging-panel').style.display=showPkg?'block':'none';
   if(t!=='delivery')deliveryFee=0;
   else updateFee();
   render();
@@ -261,7 +372,8 @@ function updateFee(){
 function render(){
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const fee=orderType==='delivery'?(deliveryFee||0):0;
-  const total=sub+fee;
+  const pkg=(orderType==='delivery'||orderType==='pickup')?pkgTotal():0;
+  const total=sub+fee+pkg;
   const det=document.getElementById('sumDetails');
   const items=document.getElementById('sumItems');
   if(!cart.length){
@@ -273,6 +385,7 @@ function render(){
       <span class="sum-price">${ugx(i.price*i.qty)}</span></div>`).join('');
     document.getElementById('sumSub').textContent=ugx(sub);
     document.getElementById('sumFee').textContent=orderType==='delivery'?ugx(fee):'Free';
+    document.getElementById('sumPkg').textContent=pkg>0?ugx(pkg):'None';
     document.getElementById('sumTotal').textContent=ugx(total);
     det.style.display='block';
   }
@@ -298,6 +411,7 @@ function placeOrder(){
       email:document.getElementById('custEmail').value,
       notes:document.getElementById('custNotes').value,
       items:cart.map(i=>({id:i.id,name:i.name,price:i.price,quantity:i.qty})),
+      packaging:getPkgList(),
       payment_method:payMethod,order_type:orderType,distance,
       address:document.getElementById('address').value
     })

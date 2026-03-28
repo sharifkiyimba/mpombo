@@ -35,6 +35,20 @@ class Config:
     FREE_DELIVERY_MIN   = 50000  # UGX — orders above this get free delivery
 
 # ── Site Settings (loaded from DB, falls back to Config) ─────
+def get_menu_images():
+    """Load all custom menu images from DB. Returns dict {item_id: url}."""
+    images = {}
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT item_id, image_url FROM menu_images")
+        for row in cur.fetchall():
+            if row['image_url']:
+                images[row['item_id']] = row['image_url']
+        cur.close()
+    except:
+        pass
+    return images
+
 def get_settings():
     """Load site settings from DB. Falls back to Config defaults."""
     defaults = {
@@ -301,11 +315,11 @@ def get_total_col():
 
 @app.route('/')
 def index():
-    s=get_settings(); return render_template('index.html', config=Config, menu=MENU, settings=s)
+    s=get_settings(); imgs=get_menu_images(); return render_template('index.html', config=Config, menu=MENU, settings=s, menu_images=imgs)
 
 @app.route('/menu')
 def menu():
-    s=get_settings(); return render_template('menu.html', config=Config, menu=MENU, settings=s)
+    s=get_settings(); imgs=get_menu_images(); return render_template('menu.html', config=Config, menu=MENU, settings=s, menu_images=imgs)
 
 @app.route('/about')
 def about():
@@ -317,7 +331,7 @@ def contact():
 
 @app.route('/order')
 def order():
-    s=get_settings(); return render_template('order.html', config=Config, menu=MENU, settings=s)
+    s=get_settings(); imgs=get_menu_images(); return render_template('order.html', config=Config, menu=MENU, settings=s, menu_images=imgs)
 
 @app.route('/reserve')
 def reserve():
@@ -478,9 +492,14 @@ def place_order():
         if not name or not phone:
             return jsonify({'success': False, 'error': 'Name and phone are required'}), 400
 
-        subtotal = sum(float(i['price']) * int(i['quantity']) for i in items)
-        fee      = 0 if order_type != 'delivery' else (calc_delivery_fee(distance, subtotal) or 0)
-        total    = subtotal + fee
+        subtotal  = sum(float(i['price']) * int(i['quantity']) for i in items)
+        fee       = 0 if order_type != 'delivery' else (calc_delivery_fee(distance, subtotal) or 0)
+        # Packaging fee (delivery + pickup only)
+        packaging = data.get('packaging', [])
+        pkg_cost  = 0
+        if order_type in ('delivery', 'pickup'):
+            pkg_cost = sum(int(p.get('qty',0)) * int(p.get('price',0)) for p in packaging)
+        total     = subtotal + fee + pkg_cost
         order_no = gen_order_number()
 
         cur  = mysql.connection.cursor()
@@ -583,6 +602,7 @@ def place_order():
             'success':       True,
             'order_number':  order_no,
             'total':         total,
+            'pkg_cost':      pkg_cost,
             'total_display': fmt_ugx(total)
         })
     except Exception as e:
@@ -1180,6 +1200,50 @@ def settings_clear_reservations():
         return jsonify({'success': False, 'error': str(e)})
 
 # ═══════════════════════════════════════════════════════════
+#  ADMIN — IMAGE MANAGEMENT
+# ═══════════════════════════════════════════════════════════
+
+@app.route('/admin/images')
+@admin_required
+def admin_images():
+    imgs = get_menu_images()
+    return render_template('admin/images.html',
+        config=Config, menu=MENU, menu_images=imgs)
+
+@app.route('/admin/images/save', methods=['POST'])
+@admin_required
+def save_image():
+    try:
+        data     = request.json
+        item_id  = int(data.get('item_id'))
+        image_url= data.get('image_url','').strip()
+        item_name= data.get('item_name','')
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            INSERT INTO menu_images (item_id, item_name, image_url)
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE image_url=%s, item_name=%s
+        """, (item_id, item_name, image_url, image_url, item_name))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/images/delete', methods=['POST'])
+@admin_required
+def delete_image():
+    try:
+        item_id = int(request.json.get('item_id'))
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM menu_images WHERE item_id=%s", (item_id,))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# ═══════════════════════════════════════════════════════════
 #  DATABASE SETUP
 # ═══════════════════════════════════════════════════════════
 
@@ -1261,6 +1325,16 @@ def setup_db():
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 setting_key VARCHAR(100) UNIQUE NOT NULL,
                 setting_value TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS menu_images (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                item_id INT UNIQUE NOT NULL,
+                item_name VARCHAR(100),
+                image_url TEXT,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
         """)
@@ -1349,6 +1423,21 @@ def fix_db():
             except:
                 pass
 
+
+        # Add menu_images table if missing
+        try:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS menu_images (
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    item_id INT UNIQUE NOT NULL,
+                    item_name VARCHAR(100),
+                    image_url TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            """)
+            fixes.append('+ menu_images table')
+        except:
+            pass
 
         # Add site_settings table if missing
         try:
