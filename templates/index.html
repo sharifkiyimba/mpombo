@@ -157,6 +157,7 @@
       <a href="{{ url_for('order') }}" class="btn btn-clay"><i class="fas fa-utensils"></i> Order Now</a>
       <a href="{{ url_for('menu') }}" class="btn btn-outline-light"><i class="fas fa-book-open"></i> View Menu</a>
       <a href="{{ url_for('reserve') }}" class="btn btn-gold"><i class="fas fa-calendar"></i> Reserve Table</a>
+      <a href="{{ url_for('catering') }}" class="btn btn-outline-light"><i class="fas fa-truck"></i> Outside Catering</a>
     </div>
   </div>
 </section>
@@ -310,6 +311,7 @@
     <a href="{{ url_for('order') }}" class="btn btn-gold"><i class="fas fa-utensils"></i> Order Online</a>
     <a href="https://wa.me/{{ settings.restaurant_whatsapp }}?text=Hello%20Mpombo%2C%20I%20want%20to%20order!" class="btn btn-outline-light" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Order</a>
     <a href="{{ url_for('reserve') }}" class="btn btn-forest"><i class="fas fa-calendar-check"></i> Reserve Table</a>
+    <a href="{{ url_for('catering') }}" class="btn btn-gold"><i class="fas fa-utensils"></i> Outside Catering</a>
   </div>
 </section>
 {% endblock %}

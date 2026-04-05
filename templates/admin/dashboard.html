@@ -1,6 +1,26 @@
 {% extends "admin/base_admin.html" %}
 {% block title %}Dashboard — Mpombo Admin{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
+{% block admin_css %}
+/* Dashboard mobile fixes */
+.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.qa-card{background:white;border:1px solid var(--border);border-radius:8px;
+  padding:18px;display:flex;align-items:center;gap:13px;
+  transition:all .3s;color:var(--text);text-decoration:none}
+.qa-card:hover{border-color:var(--clay2);transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(44,26,14,.1)}
+.qa-icon{width:44px;height:44px;border-radius:10px;background:var(--clay-pale);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--clay);font-size:18px;flex-shrink:0}
+.qa-title{font-weight:600;font-size:14px;color:var(--forest)}
+.qa-sub{font-size:12px;color:var(--text3)}
+@media(max-width:900px){
+  .quick-actions{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .quick-actions{grid-template-columns:1fr}
+}
+{% endblock %}
 {% block admin_content %}
 
 <div class="stats-grid">
@@ -29,7 +49,7 @@
 </div>
 
 <!-- All-time row -->
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:22px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:22px" class="alltime-grid">
   <div style="background:white;border-radius:6px;padding:18px 22px;border:1px solid var(--cream2)">
     <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px">All-Time Orders</div>
     <div style="font-family:'Yeseva One',serif;font-size:26px;color:var(--forest)">{{ all_time.total_orders or 0 }}</div>
@@ -45,22 +65,17 @@
 </div>
 
 <!-- Quick Actions -->
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+<div class="quick-actions">
   {% for href, icon, title, sub in [
     (url_for('admin_orders'), 'fas fa-receipt', 'Manage Orders', 'View & update statuses'),
     (url_for('admin_reservations'), 'fas fa-calendar-alt', 'Reservations', 'Confirm table bookings'),
     (url_for('admin_sales'), 'fas fa-chart-line', 'Sales Report', 'Revenue analytics'),
   ] %}
-  <a href="{{ href }}" style="background:white;border:1px solid var(--cream2);border-radius:6px;
-    padding:18px;display:flex;align-items:center;gap:13px;transition:all .3s;color:var(--text)">
-    <div style="width:42px;height:42px;border-radius:8px;background:var(--clay-pale);
-      display:flex;align-items:center;justify-content:center;
-      color:var(--clay);font-size:18px;flex-shrink:0">
-      <i class="{{ icon }}"></i>
-    </div>
+  <a href="{{ href }}" class="qa-card">
+    <div class="qa-icon"><i class="{{ icon }}"></i></div>
     <div>
-      <div style="font-weight:600;font-size:14px;color:var(--forest)">{{ title }}</div>
-      <div style="font-size:12px;color:var(--text3)">{{ sub }}</div>
+      <div class="qa-title">{{ title }}</div>
+      <div class="qa-sub">{{ sub }}</div>
     </div>
   </a>
   {% endfor %}
@@ -72,8 +87,8 @@
     <div class="ac-title">Recent Orders</div>
     <a href="{{ url_for('admin_orders') }}" class="btn btn-outline btn-sm">View All →</a>
   </div>
-  <div style="overflow-x:auto">
-    <table class="atable">
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+    <table class="atable" style="min-width:600px">
       <thead>
         <tr>
           <th>Order #</th>

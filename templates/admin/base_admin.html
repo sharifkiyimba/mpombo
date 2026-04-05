@@ -143,7 +143,44 @@
     font-family:'Outfit',sans-serif;font-size:13px;background:white;outline:none}
 
   @media(max-width:1100px){.stats-grid{grid-template-columns:1fr 1fr}}
-  @media(max-width:768px){.sidebar{display:none}.admin-main{margin-left:0}.stats-grid{grid-template-columns:1fr}}
+
+  /* Mobile sidebar overlay */
+  .mob-menu-btn{
+    display:none;position:fixed;bottom:20px;right:20px;z-index:2000;
+    width:52px;height:52px;border-radius:50%;background:var(--clay);
+    border:none;color:white;font-size:22px;box-shadow:0 4px 16px rgba(0,0,0,.3);
+    cursor:pointer;align-items:center;justify-content:center;
+  }
+  .sb-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+    z-index:999;
+  }
+  @media(max-width:900px){
+    .sidebar{
+      position:fixed;top:0;left:0;bottom:0;
+      transform:translateX(-100%);transition:transform .35s ease;
+      z-index:1000;width:260px;
+    }
+    .sidebar.open{transform:translateX(0)}
+    .sb-overlay.open{display:block}
+    .admin-main{margin-left:0}
+    .mob-menu-btn{display:flex}
+    .stats-grid{grid-template-columns:1fr 1fr;gap:12px}
+    .admin-content{padding:16px}
+    .admin-topbar{padding:0 16px}
+    .admin-page-title{font-size:18px}
+    .atable{font-size:13px}
+    .atable th,.atable td{padding:10px 10px}
+    .filter-bar{flex-direction:column;align-items:stretch}
+    .filter-bar input,.filter-bar select{width:100%}
+    /* Stack grids on mobile */
+    [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
+    [style*="grid-template-columns:repeat(3"]{grid-template-columns:1fr!important}
+  }
+  @media(max-width:480px){
+    .stats-grid{grid-template-columns:1fr}
+    .scard-val{font-size:26px}
+  }
 
   {% block admin_css %}{% endblock %}
   </style>
@@ -207,6 +244,13 @@
   </div>
 </aside>
 
+<!-- Mobile overlay -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+<!-- Mobile menu button -->
+<button class="mob-menu-btn" id="mobMenuBtn" onclick="toggleSidebar()" title="Menu">
+  <i class="fas fa-bars"></i>
+</button>
+
 <!-- Main Content -->
 <div class="admin-main">
   <div class="kente" style="height:5px"></div>
@@ -232,5 +276,21 @@
 </div>
 
 {% block admin_js %}{% endblock %}
+<script>
+function toggleSidebar(){
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sbOverlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('open');
+}
+// Close sidebar on nav link click (mobile)
+document.querySelectorAll('.sb-link').forEach(l=>{
+  l.addEventListener('click',()=>{
+    if(window.innerWidth<=900) closeSidebar();
+  });
+});
+</script>
 </body>
 </html>
