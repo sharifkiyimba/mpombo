@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+import pymysql
+pymysql.install_as_MySQLdb()
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
