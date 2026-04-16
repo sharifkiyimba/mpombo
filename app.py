@@ -1,11 +1,8 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-import pymysql
-pymysql.install_as_MySQLdb()
-from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from functools import wraps
-import random, string, json, os
+import random, string, json, os, sqlite3
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,14 +10,16 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'mpombo-uganda-secret-2024')
 
-# ── Database ─────────────────────────────────────────────
-app.config['MYSQL_HOST']        = os.environ.get('MYSQL_HOST', 'localhost')
-app.config['MYSQL_USER']        = os.environ.get('MYSQL_USER', 'root')
-app.config['MYSQL_PASSWORD']    = os.environ.get('MYSQL_PASSWORD', '')
-app.config['MYSQL_DB']          = os.environ.get('MYSQL_DB', 'mpombo_restaurant')
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+# ── SQLite Database ───────────────────────────────────────
+DB_PATH = os.path.join(os.path.dirname(__file__), 'mpombo.db')
 
-mysql = MySQL(app)
+def get_db():
+    """Get a SQLite connection with row_factory for dict-like access."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
+    return conn
 
 # ── Restaurant Config ─────────────────────────────────────
 class Config:
@@ -39,12 +38,12 @@ def get_menu_images():
     """Load all custom menu images from DB. Returns dict {item_id: url}."""
     images = {}
     try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT item_id, image_url FROM menu_images")
-        for row in cur.fetchall():
+        db = get_db()
+        rows = db.execute("SELECT item_id, image_url FROM menu_images").fetchall()
+        db.close()
+        for row in rows:
             if row['image_url']:
                 images[row['item_id']] = row['image_url']
-        cur.close()
     except:
         pass
     return images
@@ -67,15 +66,13 @@ def get_settings():
         'hours_delivery':     'Until 9:00pm daily',
     }
     try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT setting_key, setting_value FROM site_settings")
-        rows = cur.fetchall()
-        cur.close()
+        db = get_db()
+        rows = db.execute("SELECT setting_key, setting_value FROM site_settings").fetchall()
+        db.close()
         for row in rows:
             defaults[row['setting_key']] = row['setting_value']
     except:
         pass
-    # Expose numeric delivery values
     try:
         defaults['delivery_base_fee_int'] = int(defaults['delivery_base_fee'])
         defaults['delivery_per_km_int']   = int(defaults['delivery_per_km'])
@@ -90,14 +87,105 @@ def get_settings():
 
 def save_setting(key, value):
     """Upsert a single setting into site_settings table."""
-    cur = mysql.connection.cursor()
-    cur.execute("""
-        INSERT INTO site_settings (setting_key, setting_value)
-        VALUES (%s, %s)
-        ON DUPLICATE KEY UPDATE setting_value = %s
-    """, (key, value, value))
-    mysql.connection.commit()
-    cur.close()
+    db = get_db()
+    db.execute(
+        "INSERT OR REPLACE INTO site_settings (setting_key, setting_value) VALUES (?,?)",
+        (key, value)
+    )
+    db.commit()
+    db.close()
+
+def init_db():
+    """Initialize SQLite database on first run."""
+    db = get_db()
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            phone TEXT,
+            password_hash TEXT NOT NULL,
+            role TEXT DEFAULT 'customer',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_number TEXT UNIQUE NOT NULL,
+            customer_name TEXT,
+            customer_phone TEXT,
+            customer_email TEXT,
+            order_type TEXT DEFAULT 'delivery',
+            subtotal REAL DEFAULT 0,
+            delivery_fee REAL DEFAULT 0,
+            total_amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            payment_method TEXT DEFAULT 'cash',
+            payment_status TEXT DEFAULT 'pending',
+            delivery_address TEXT,
+            special_instructions TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS order_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER,
+            menu_item_id INTEGER,
+            item_name TEXT,
+            quantity INTEGER DEFAULT 1,
+            unit_price REAL,
+            subtotal REAL,
+            FOREIGN KEY (order_id) REFERENCES orders(id)
+        );
+        CREATE TABLE IF NOT EXISTS order_tracking (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER,
+            status TEXT,
+            notes TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS reservations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            email TEXT,
+            guest_count INTEGER DEFAULT 2,
+            reservation_date TEXT NOT NULL,
+            reservation_time TEXT NOT NULL,
+            special_requests TEXT,
+            status TEXT DEFAULT 'pending',
+            table_number TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS site_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            setting_key TEXT UNIQUE NOT NULL,
+            setting_value TEXT,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS menu_images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id INTEGER UNIQUE NOT NULL,
+            item_name TEXT,
+            image_url TEXT,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    # Create admin if not exists
+    existing = db.execute("SELECT id FROM users WHERE username='admin'").fetchone()
+    if not existing:
+        from werkzeug.security import generate_password_hash
+        db.execute(
+            "INSERT INTO users (username,email,phone,password_hash,role) VALUES (?,?,?,?,'admin')",
+            ('admin','admin@mpombofamily.com','+256700000000', generate_password_hash('admin123'))
+        )
+    db.commit()
+    db.close()
+
+# Auto-initialize database
+with app.app_context():
+    try:
+        init_db()
+    except Exception as e:
+        print(f"DB init warning: {e}")
 
 # ── Full Ugandan Menu ─────────────────────────────────────
 MENU = [
@@ -294,10 +382,10 @@ def calc_delivery_fee(distance_km, subtotal):
 def get_order_cols():
     """Return actual column names of the orders table."""
     try:
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute("DESCRIBE orders")
         cols = [r['Field'] for r in cur.fetchall()]
-        cur.close()
+        db.close()
         return cols
     except:
         return []
@@ -346,8 +434,8 @@ def track():
         order_number = request.form.get('order_number', '').strip().upper()
         if order_number:
             try:
-                cur = mysql.connection.cursor()
-                cur.execute("SELECT * FROM orders WHERE order_number = %s", (order_number,))
+                db = get_db(); cur = db
+                cur.execute("SELECT * FROM orders WHERE order_number = ?", (order_number,))
                 row = cur.fetchone()
                 if row:
                     tc = get_total_col()
@@ -356,7 +444,7 @@ def track():
                     # If old schema, try to pull customer info from customers table
                     if not order_data.get('customer_name') and order_data.get('customer_id'):
                         try:
-                            cur.execute("SELECT * FROM customers WHERE id=%s", (order_data['customer_id'],))
+                            cur.execute("SELECT * FROM customers WHERE id=?", (order_data['customer_id'],))
                             cust = cur.fetchone()
                             if cust:
                                 order_data['customer_name'] = cust['name']
@@ -369,7 +457,7 @@ def track():
                             SELECT oi.*, mi.name as item_name
                             FROM order_items oi
                             LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
-                            WHERE oi.order_id = %s
+                            WHERE oi.order_id = ?
                         """, (row['id'],))
                         order_data['items_list'] = cur.fetchall()
                     except:
@@ -380,13 +468,13 @@ def track():
                             order_data['items_list'] = []
                     # Fetch status history
                     try:
-                        cur.execute("SELECT * FROM order_tracking WHERE order_id = %s ORDER BY created_at ASC", (row['id'],))
+                        cur.execute("SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at ASC", (row['id'],))
                         order_data['tracking'] = cur.fetchall()
                     except:
                         order_data['tracking'] = []
                 else:
                     flash(f'No order found with number "{order_number}". Please check and try again.', 'warning')
-                cur.close()
+                db.close()
             except Exception as e:
                 flash(f'Error: {e}', 'danger')
     return render_template('track.html', config=Config, order=order_data, order_number=order_number)
@@ -398,13 +486,13 @@ def reservation_status():
     reservation = None
     if phone:
         try:
-            cur = mysql.connection.cursor()
+            db = get_db(); cur = db
             cur.execute(
-                "SELECT * FROM reservations WHERE phone = %s ORDER BY reservation_date DESC LIMIT 1",
+                "SELECT * FROM reservations WHERE phone = ? ORDER BY reservation_date DESC LIMIT 1",
                 (phone,)
             )
             reservation = cur.fetchone()
-            cur.close()
+            db.close()
             if not reservation:
                 flash('No reservation found for that phone number.', 'warning')
         except Exception as e:
@@ -421,10 +509,10 @@ def login():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
         try:
-            cur = mysql.connection.cursor()
-            cur.execute("SELECT * FROM users WHERE username=%s OR email=%s", (username, username))
+            db = get_db(); cur = db
+            cur.execute("SELECT * FROM users WHERE username=? OR email=?", (username, username))
             user = cur.fetchone()
-            cur.close()
+            db.close()
             if user and check_password_hash(user['password_hash'], password):
                 session['logged_in'] = True
                 session['user_id']   = user['id']
@@ -450,13 +538,13 @@ def register():
             flash('Passwords do not match.', 'danger')
             return redirect(url_for('register'))
         try:
-            cur = mysql.connection.cursor()
-            cur.execute(
-                "INSERT INTO users (username, email, phone, password_hash, role) VALUES (%s,%s,%s,%s,'customer')",
+            db = get_db()
+            db.execute(
+                "INSERT INTO users (username, email, phone, password_hash, role) VALUES (?,?,?,?,'customer')",
                 (username, email, phone, generate_password_hash(password))
             )
-            mysql.connection.commit()
-            cur.close()
+            db.commit()
+            db.close()
             flash('Account created successfully! Please log in.', 'success')
             return redirect(url_for('login'))
         except:
@@ -502,7 +590,7 @@ def place_order():
         total     = subtotal + fee + pkg_cost
         order_no = gen_order_number()
 
-        cur  = mysql.connection.cursor()
+        db = get_db(); cur = db
         cols = get_order_cols()   # actual columns in the orders table
         tc   = get_total_col()    # 'total_amount' or 'total'
 
@@ -541,28 +629,28 @@ def place_order():
         if 'special_instructions' in cols:
             fields.append('special_instructions'); values.append(notes)
 
-        placeholders = ', '.join(['%s'] * len(fields))
+        placeholders = ', '.join(['?'] * len(fields))
         col_list     = ', '.join(fields)
         cur.execute(
             f"INSERT INTO orders ({col_list}) VALUES ({placeholders})",
             values
         )
-        order_id = cur.lastrowid
+        order_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
 
         # ── If old schema uses customer_id, create/find a customers row ──
         if 'customer_id' in cols and 'customer_name' not in cols:
             try:
-                cur.execute("SELECT id FROM customers WHERE phone=%s", (phone,))
+                cur.execute("SELECT id FROM customers WHERE phone=?", (phone,))
                 cust = cur.fetchone()
                 if cust:
                     cust_id = cust['id']
                 else:
                     cur.execute(
-                        "INSERT INTO customers (name, phone, email) VALUES (%s,%s,%s)",
+                        "INSERT INTO customers (name, phone, email) VALUES (?,?,?)",
                         (name, phone, email)
                     )
-                    cust_id = cur.lastrowid
-                cur.execute("UPDATE orders SET customer_id=%s WHERE id=%s", (cust_id, order_id))
+                    cust_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+                cur.execute("UPDATE orders SET customer_id=? WHERE id=?", (cust_id, order_id))
             except:
                 pass  # customers table may not exist either — non-fatal
 
@@ -573,7 +661,7 @@ def place_order():
                 cur.execute("""
                     INSERT INTO order_items
                       (order_id, menu_item_id, item_name, quantity, unit_price, subtotal)
-                    VALUES (%s,%s,%s,%s,%s,%s)
+                    VALUES (?,?,?,?,?,?)
                 """, (order_id, item['id'], item['name'],
                       item['quantity'], item['price'], item_subtotal))
             except:
@@ -581,7 +669,7 @@ def place_order():
                     # Fallback: table without item_name column
                     cur.execute("""
                         INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, subtotal)
-                        VALUES (%s,%s,%s,%s,%s)
+                        VALUES (?,?,?,?,?)
                     """, (order_id, item['id'], item['quantity'], item['price'], item_subtotal))
                 except:
                     pass
@@ -589,14 +677,14 @@ def place_order():
         # ── Tracking record ──
         try:
             cur.execute(
-                "INSERT INTO order_tracking (order_id, status, notes) VALUES (%s,'pending','Order received')",
+                "INSERT INTO order_tracking (order_id, status, notes) VALUES (?,'pending','Order received')",
                 (order_id,)
             )
         except:
             pass
 
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
 
         return jsonify({
             'success':       True,
@@ -616,14 +704,14 @@ def place_order():
 def api_reserve():
     try:
         data = request.json
-        cur  = mysql.connection.cursor()
+        db = get_db(); cur = db
         # Try new schema (guest_count) then fall back to old (guests)
         try:
             cur.execute("""
                 INSERT INTO reservations
                   (name, phone, email, guest_count, reservation_date, reservation_time,
                    special_requests, status)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,'pending')
+                VALUES (?,?,?,?,?,?,?,'pending')
             """, (data['name'], data['phone'], data.get('email',''),
                   data['guests'], data['date'], data['time'],
                   data.get('special_requests','')))
@@ -632,12 +720,12 @@ def api_reserve():
                 INSERT INTO reservations
                   (name, phone, email, guests, reservation_date, reservation_time,
                    special_requests, status)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,'pending')
+                VALUES (?,?,?,?,?,?,?,'pending')
             """, (data['name'], data['phone'], data.get('email',''),
                   data['guests'], data['date'], data['time'],
                   data.get('special_requests','')))
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True, 'message': 'Reservation received! We will confirm via phone.'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -651,7 +739,7 @@ def api_reserve():
 def dashboard():
     tc    = get_total_col()
     today = datetime.now().strftime('%Y-%m-%d')
-    cur   = mysql.connection.cursor()
+    db = get_db(); cur = db
 
     # Today's stats
     if tc:
@@ -660,14 +748,14 @@ def dashboard():
                    COALESCE(SUM({tc}),0) as revenue_today,
                    SUM(CASE WHEN status='pending'  THEN 1 ELSE 0 END) as pending,
                    SUM(CASE WHEN status='preparing'THEN 1 ELSE 0 END) as preparing
-            FROM orders WHERE DATE(created_at)=%s
+            FROM orders WHERE date(created_at)=?
         """, (today,))
     else:
         cur.execute("""
             SELECT COUNT(*) as orders_today, 0 as revenue_today,
                    SUM(CASE WHEN status='pending'  THEN 1 ELSE 0 END) as pending,
                    SUM(CASE WHEN status='preparing'THEN 1 ELSE 0 END) as preparing
-            FROM orders WHERE DATE(created_at)=%s
+            FROM orders WHERE date(created_at)=?
         """, (today,))
     stats = cur.fetchone() or {}
 
@@ -701,7 +789,7 @@ def dashboard():
     # Upcoming reservations
     cur.execute("""
         SELECT * FROM reservations
-        WHERE reservation_date >= CURDATE() AND status='pending'
+        WHERE reservation_date >= date('now') AND status='pending'
         ORDER BY reservation_date, reservation_time LIMIT 8
     """)
     reservations = cur.fetchall()
@@ -710,7 +798,7 @@ def dashboard():
     cur.execute("SELECT COUNT(*) as count FROM users WHERE role='customer'")
     customers = cur.fetchone() or {'count': 0}
 
-    cur.close()
+    db.close()
     return render_template('admin/dashboard.html',
         config=Config, stats=stats, all_time=all_time,
         orders=orders, reservations=reservations,
@@ -726,7 +814,7 @@ def admin_orders():
     tc             = get_total_col()
     status_filter  = request.args.get('status', '')
     search         = request.args.get('q', '').strip()
-    cur            = mysql.connection.cursor()
+    cur            = get_db()
 
     order_cols = get_order_cols()
     has_cust_cols = "customer_name" in order_cols
@@ -734,9 +822,9 @@ def admin_orders():
     if has_cust_cols:
         query = "SELECT * FROM orders WHERE 1=1"
         if status_filter:
-            query += " AND status=%s"; params.append(status_filter)
+            query += " AND status=?"; params.append(status_filter)
         if search:
-            query += " AND (order_number LIKE %s OR customer_name LIKE %s OR customer_phone LIKE %s)"
+            query += " AND (order_number LIKE ? OR customer_name LIKE ? OR customer_phone LIKE ?)"
             s = f'%{search}%'; params += [s, s, s]
         query += " ORDER BY created_at DESC"
     else:
@@ -744,9 +832,9 @@ def admin_orders():
                  " c.email as customer_email FROM orders o"
                  " LEFT JOIN customers c ON o.customer_id = c.id WHERE 1=1")
         if status_filter:
-            query += " AND o.status=%s"; params.append(status_filter)
+            query += " AND o.status=?"; params.append(status_filter)
         if search:
-            query += " AND (o.order_number LIKE %s OR c.name LIKE %s OR c.phone LIKE %s)"
+            query += " AND (o.order_number LIKE ? OR c.name LIKE ? OR c.phone LIKE ?)"
             s = f'%{search}%'; params += [s, s, s]
         query += " ORDER BY o.created_at DESC"
     try:
@@ -759,7 +847,7 @@ def admin_orders():
         d = dict(row)
         d['total_display'] = fmt_ugx(d.get(tc, 0) if tc else 0)
         orders.append(d)
-    cur.close()
+    db.close()
 
     return render_template('admin/orders.html',
         config=Config, orders=orders,
@@ -770,18 +858,18 @@ def admin_orders():
 def update_order():
     try:
         data = request.json
-        cur  = mysql.connection.cursor()
-        cur.execute("UPDATE orders SET status=%s WHERE id=%s", (data['status'], data['order_id']))
+        db = get_db(); cur = db
+        cur.execute("UPDATE orders SET status=? WHERE id=?", (data['status'], data['order_id']))
         # Log the status change in order_tracking
         try:
             cur.execute(
-                "INSERT INTO order_tracking (order_id, status, notes) VALUES (%s,%s,%s)",
+                "INSERT INTO order_tracking (order_id, status, notes) VALUES (?,?,?)",
                 (data['order_id'], data['status'], f"Status updated to {data['status']}")
             )
         except:
             pass
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -796,16 +884,16 @@ def update_order():
 @admin_required
 def admin_reservations():
     status_filter = request.args.get('status', '')
-    cur           = mysql.connection.cursor()
+    cur           = get_db()
     if status_filter:
         cur.execute(
-            "SELECT * FROM reservations WHERE status=%s ORDER BY reservation_date DESC, reservation_time",
+            "SELECT * FROM reservations WHERE status=? ORDER BY reservation_date DESC, reservation_time",
             (status_filter,)
         )
     else:
         cur.execute("SELECT * FROM reservations ORDER BY reservation_date DESC, reservation_time")
     reservations = cur.fetchall()
-    cur.close()
+    db.close()
     return render_template('admin/reservations.html',
         config=Config, reservations=reservations, status_filter=status_filter)
 
@@ -814,13 +902,13 @@ def admin_reservations():
 def update_reservation():
     try:
         data = request.json
-        cur  = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute(
-            "UPDATE reservations SET status=%s, table_number=%s WHERE id=%s",
+            "UPDATE reservations SET status=?, table_number=? WHERE id=?",
             (data['status'], data.get('table_number', ''), data['reservation_id'])
         )
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -835,18 +923,18 @@ def admin_sales():
     tc        = get_total_col()
     date_from = request.args.get('from', (datetime.now()-timedelta(days=30)).strftime('%Y-%m-%d'))
     date_to   = request.args.get('to',   datetime.now().strftime('%Y-%m-%d'))
-    cur       = mysql.connection.cursor()
+    cur       = get_db()
 
     if tc:
         cur.execute(f"""
-            SELECT DATE(created_at) as sale_date,
+            SELECT date(created_at) as sale_date,
                    COUNT(*) as order_count,
                    COALESCE(SUM({tc}), 0) as total_sales,
                    COALESCE(SUM(subtotal), 0) as subtotal_sales,
                    COALESCE(SUM(delivery_fee), 0) as delivery_revenue
             FROM orders
-            WHERE DATE(created_at) BETWEEN %s AND %s
-            GROUP BY DATE(created_at)
+            WHERE date(created_at) BETWEEN ? AND ?
+            GROUP BY date(created_at)
             ORDER BY sale_date DESC
         """, (date_from, date_to))
         daily = cur.fetchall()
@@ -856,7 +944,7 @@ def admin_sales():
                    COALESCE(SUM({tc}), 0) as total_revenue,
                    COALESCE(AVG({tc}), 0) as avg_order,
                    COALESCE(SUM(delivery_fee), 0) as delivery_revenue
-            FROM orders WHERE DATE(created_at) BETWEEN %s AND %s
+            FROM orders WHERE date(created_at) BETWEEN ? AND ?
         """, (date_from, date_to))
         summary = cur.fetchone()
 
@@ -864,14 +952,14 @@ def admin_sales():
             SELECT payment_method,
                    COUNT(*) as count,
                    COALESCE(SUM({tc}), 0) as total
-            FROM orders WHERE DATE(created_at) BETWEEN %s AND %s
+            FROM orders WHERE date(created_at) BETWEEN ? AND ?
             GROUP BY payment_method
         """, (date_from, date_to))
         by_payment = cur.fetchall()
 
         cur.execute(f"""
             SELECT status, COUNT(*) as count
-            FROM orders WHERE DATE(created_at) BETWEEN %s AND %s
+            FROM orders WHERE date(created_at) BETWEEN ? AND ?
             GROUP BY status
         """, (date_from, date_to))
         by_status = cur.fetchall()
@@ -879,7 +967,7 @@ def admin_sales():
         daily = []; by_payment = []; by_status = []
         summary = {'total_orders':0,'total_revenue':0,'avg_order':0,'delivery_revenue':0}
 
-    cur.close()
+    db.close()
     return render_template('admin/sales.html',
         config=Config, daily=daily, summary=summary,
         by_payment=by_payment, by_status=by_status,
@@ -893,17 +981,17 @@ def admin_sales():
 @admin_required
 def admin_customers():
     search = request.args.get('q', '').strip()
-    cur    = mysql.connection.cursor()
+    db = get_db(); cur = db
     if search:
         s = f'%{search}%'
         cur.execute(
-            "SELECT * FROM users WHERE username LIKE %s OR email LIKE %s OR phone LIKE %s ORDER BY created_at DESC",
+            "SELECT * FROM users WHERE username LIKE ? OR email LIKE ? OR phone LIKE ? ORDER BY created_at DESC",
             (s, s, s)
         )
     else:
         cur.execute("SELECT * FROM users ORDER BY created_at DESC")
     customers = cur.fetchall()
-    cur.close()
+    db.close()
     return render_template('admin/customers.html',
         config=Config, customers=customers, search=search)
 
@@ -918,10 +1006,10 @@ def verify_settings_pin():
     try:
         data = request.json
         entered = data.get('pin', '').strip()
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute("SELECT setting_value FROM site_settings WHERE setting_key='settings_pin'")
         row = cur.fetchone()
-        cur.close()
+        db.close()
         # Default PIN is 1234 if not set
         stored_pin = row['setting_value'] if row else '1234'
         if entered == stored_pin:
@@ -1038,10 +1126,10 @@ upd();
 </script>
 </body>
 </html>'''
-    cur = mysql.connection.cursor()
+    db = get_db(); cur = db
     cur.execute("SELECT * FROM users ORDER BY role, username")
     users = cur.fetchall()
-    cur.close()
+    db.close()
     s = get_settings()
     return render_template('admin/settings.html', config=Config, users=users, settings=s)
 
@@ -1056,21 +1144,21 @@ def settings_save_pin():
         if len(new_pin) < 4:
             return jsonify({'success': False, 'error': 'PIN must be at least 4 characters'})
         # Verify current PIN first
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute("SELECT setting_value FROM site_settings WHERE setting_key='settings_pin'")
         row = cur.fetchone()
         stored = row['setting_value'] if row else '1234'
         if cur_pin != stored:
-            cur.close()
+            db.close()
             return jsonify({'success': False, 'error': 'Current PIN is incorrect'})
         # Save new PIN
         cur.execute("""
             INSERT INTO site_settings (setting_key, setting_value)
-            VALUES ('settings_pin', %s)
-            ON DUPLICATE KEY UPDATE setting_value = %s
+            VALUES ('settings_pin', ?)
+            
         """, (new_pin, new_pin))
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1124,16 +1212,16 @@ def settings_change_password():
         new_pass = data.get('new_password', '')
         if len(new_pass) < 6:
             return jsonify({'success': False, 'error': 'Password must be at least 6 characters'})
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
+        db = get_db(); cur = db
+        cur.execute("SELECT * FROM users WHERE id = ?", (session['user_id'],))
         user = cur.fetchone()
         if not user or not check_password_hash(user['password_hash'], current):
-            cur.close()
+            db.close()
             return jsonify({'success': False, 'error': 'Current password is incorrect'})
-        cur.execute("UPDATE users SET password_hash = %s WHERE id = %s",
+        cur.execute("UPDATE users SET password_hash = ? WHERE id = ?",
                     (generate_password_hash(new_pass), session['user_id']))
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1143,14 +1231,14 @@ def settings_change_password():
 def settings_add_staff():
     try:
         data = request.json
-        cur  = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute(
-            "INSERT INTO users (username, email, phone, password_hash, role) VALUES (%s,%s,%s,%s,%s)",
+            "INSERT INTO users (username, email, phone, password_hash, role) VALUES (?,?,?,?,?)",
             (data['username'], data['email'], data.get('phone',''),
              generate_password_hash(data['password']), data.get('role','staff'))
         )
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1163,10 +1251,10 @@ def settings_delete_user():
         uid  = data.get('user_id')
         if int(uid) == int(session['user_id']):
             return jsonify({'success': False, 'error': 'You cannot delete your own account'})
-        cur = mysql.connection.cursor()
-        cur.execute("DELETE FROM users WHERE id = %s", (uid,))
-        mysql.connection.commit()
-        cur.close()
+        db = get_db(); cur = db
+        cur.execute("DELETE FROM users WHERE id = ?", (uid,))
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1175,14 +1263,14 @@ def settings_delete_user():
 @admin_required
 def settings_clear_orders():
     try:
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         for tbl in ['order_tracking', 'order_items', 'orders']:
             try:
                 cur.execute(f"DELETE FROM {tbl}")
             except:
                 pass
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1191,10 +1279,10 @@ def settings_clear_orders():
 @admin_required
 def settings_clear_reservations():
     try:
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute("DELETE FROM reservations")
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1218,14 +1306,14 @@ def save_image():
         item_id  = int(data.get('item_id'))
         image_url= data.get('image_url','').strip()
         item_name= data.get('item_name','')
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute("""
             INSERT INTO menu_images (item_id, item_name, image_url)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE image_url=%s, item_name=%s
-        """, (item_id, item_name, image_url, image_url, item_name))
-        mysql.connection.commit()
-        cur.close()
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE image_url=?, item_name=?
+        """, (item_id, item_name, image_url))
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1235,10 +1323,10 @@ def save_image():
 def delete_image():
     try:
         item_id = int(request.json.get('item_id'))
-        cur = mysql.connection.cursor()
-        cur.execute("DELETE FROM menu_images WHERE item_id=%s", (item_id,))
-        mysql.connection.commit()
-        cur.close()
+        db = get_db(); cur = db
+        cur.execute("DELETE FROM menu_images WHERE item_id=?", (item_id,))
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1250,92 +1338,92 @@ def delete_image():
 @app.route('/setup-db')
 def setup_db():
     try:
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                username VARCHAR(50) UNIQUE NOT NULL,
-                email VARCHAR(100) UNIQUE NOT NULL,
-                phone VARCHAR(20),
-                password_hash VARCHAR(255) NOT NULL,
-                role ENUM('admin','staff','customer') DEFAULT 'customer',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                phone TEXT,
+                password_hash TEXT NOT NULL,
+                role TEXT DEFAULT 'customer',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS orders (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                order_number VARCHAR(50) UNIQUE NOT NULL,
-                customer_name VARCHAR(100) NOT NULL,
-                customer_phone VARCHAR(20) NOT NULL,
-                customer_email VARCHAR(100),
-                order_type VARCHAR(20) DEFAULT 'delivery',
-                subtotal DECIMAL(12,2) DEFAULT 0,
-                delivery_fee DECIMAL(12,2) DEFAULT 0,
-                total_amount DECIMAL(12,2) DEFAULT 0,
-                status VARCHAR(30) DEFAULT 'pending',
-                payment_method VARCHAR(50) DEFAULT 'cash',
-                payment_status VARCHAR(20) DEFAULT 'pending',
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_number TEXT UNIQUE NOT NULL,
+                customer_name TEXT NOT NULL,
+                customer_phone TEXT NOT NULL,
+                customer_email TEXT,
+                order_type TEXT DEFAULT 'delivery',
+                subtotal REAL DEFAULT 0,
+                delivery_fee REAL DEFAULT 0,
+                total_amount REAL DEFAULT 0,
+                status TEXT DEFAULT 'pending',
+                payment_method TEXT DEFAULT 'cash',
+                payment_status TEXT DEFAULT 'pending',
                 delivery_address TEXT,
                 special_instructions TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS order_items (
-                id INT PRIMARY KEY AUTO_INCREMENT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 order_id INT,
                 menu_item_id INT,
-                item_name VARCHAR(100),
+                item_name TEXT,
                 quantity INT NOT NULL DEFAULT 1,
-                unit_price DECIMAL(12,2) NOT NULL,
-                subtotal DECIMAL(12,2) NOT NULL,
-                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+                unit_price REAL NOT NULL,
+                subtotal REAL NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES orders(id) 
             )
         """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS order_tracking (
-                id INT PRIMARY KEY AUTO_INCREMENT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 order_id INT,
-                status VARCHAR(50) NOT NULL,
+                status TEXT NOT NULL,
                 notes TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (order_id) REFERENCES orders(id) 
             )
         """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS reservations (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                name VARCHAR(100) NOT NULL,
-                phone VARCHAR(20) NOT NULL,
-                email VARCHAR(100),
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                email TEXT,
                 guest_count INT NOT NULL DEFAULT 2,
                 reservation_date DATE NOT NULL,
                 reservation_time TIME NOT NULL,
                 special_requests TEXT,
-                status VARCHAR(20) DEFAULT 'pending',
-                table_number VARCHAR(10),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                status TEXT DEFAULT 'pending',
+                table_number TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS site_settings (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                setting_key VARCHAR(100) UNIQUE NOT NULL,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                setting_key TEXT UNIQUE NOT NULL,
                 setting_value TEXT,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS menu_images (
-                id INT PRIMARY KEY AUTO_INCREMENT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 item_id INT UNIQUE NOT NULL,
-                item_name VARCHAR(100),
+                item_name TEXT,
                 image_url TEXT,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
@@ -1343,13 +1431,13 @@ def setup_db():
         cur.execute("SELECT id FROM users WHERE username='admin'")
         if not cur.fetchone():
             cur.execute(
-                "INSERT INTO users (username,email,phone,password_hash,role) VALUES (%s,%s,%s,%s,'admin')",
+                "INSERT INTO users (username,email,phone,password_hash,role) VALUES (?,?,?,?,'admin')",
                 ('admin','admin@mpombofamily.com','+256700000000',
                  generate_password_hash('admin123'))
             )
 
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return (
             '<style>body{font-family:sans-serif;max-width:600px;margin:80px auto;text-align:center;line-height:1.8}</style>'
             '<h2 style="color:#1C3D2E">&#x2705; Database Setup Complete!</h2>'
@@ -1373,17 +1461,17 @@ def setup_db():
 def fix_db():
     """Upgrade existing database schema — adds missing columns."""
     try:
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         fixes = []
 
         cur.execute("DESCRIBE orders")
         cols = [r['Field'] for r in cur.fetchall()]
 
         migrations = [
-            ('customer_name',        "ALTER TABLE orders ADD COLUMN customer_name VARCHAR(100) AFTER order_number"),
-            ('customer_phone',       "ALTER TABLE orders ADD COLUMN customer_phone VARCHAR(20) AFTER customer_name"),
-            ('customer_email',       "ALTER TABLE orders ADD COLUMN customer_email VARCHAR(100) AFTER customer_phone"),
-            ('order_type',           "ALTER TABLE orders ADD COLUMN order_type VARCHAR(20) DEFAULT 'delivery'"),
+            ('customer_name',        "ALTER TABLE orders ADD COLUMN customer_name TEXT AFTER order_number"),
+            ('customer_phone',       "ALTER TABLE orders ADD COLUMN customer_phone TEXT AFTER customer_name"),
+            ('customer_email',       "ALTER TABLE orders ADD COLUMN customer_email TEXT AFTER customer_phone"),
+            ('order_type',           "ALTER TABLE orders ADD COLUMN order_type TEXT DEFAULT 'delivery'"),
             ('delivery_address',     "ALTER TABLE orders ADD COLUMN delivery_address TEXT"),
             ('special_instructions', "ALTER TABLE orders ADD COLUMN special_instructions TEXT"),
         ]
@@ -1394,7 +1482,7 @@ def fix_db():
 
         # Add total_amount if neither total nor total_amount exists
         if 'total_amount' not in cols and 'total' not in cols:
-            cur.execute("ALTER TABLE orders ADD COLUMN total_amount DECIMAL(12,2) DEFAULT 0")
+            cur.execute("ALTER TABLE orders ADD COLUMN total_amount REAL DEFAULT 0")
             fixes.append('+ total_amount')
 
         # Add item_name to order_items if missing
@@ -1402,7 +1490,7 @@ def fix_db():
             cur.execute("DESCRIBE order_items")
             oi_cols = [r['Field'] for r in cur.fetchall()]
             if 'item_name' not in oi_cols:
-                cur.execute("ALTER TABLE order_items ADD COLUMN item_name VARCHAR(100) AFTER menu_item_id")
+                cur.execute("ALTER TABLE order_items ADD COLUMN item_name TEXT AFTER menu_item_id")
                 fixes.append('+ order_items.item_name')
         except:
             pass
@@ -1428,11 +1516,11 @@ def fix_db():
         try:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS menu_images (
-                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     item_id INT UNIQUE NOT NULL,
-                    item_name VARCHAR(100),
+                    item_name TEXT,
                     image_url TEXT,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
             fixes.append('+ menu_images table')
@@ -1443,17 +1531,17 @@ def fix_db():
         try:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS site_settings (
-                    id INT PRIMARY KEY AUTO_INCREMENT,
-                    setting_key VARCHAR(100) UNIQUE NOT NULL,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    setting_key TEXT UNIQUE NOT NULL,
                     setting_value TEXT,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
             fixes.append('+ site_settings table')
         except:
             pass
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
 
         msg = ', '.join(fixes) if fixes else 'Nothing to migrate — schema already up to date!'
         return (
@@ -1513,10 +1601,10 @@ if __name__ == '__main__':
 @admin_required
 def settings_reset():
     try:
-        cur = mysql.connection.cursor()
+        db = get_db(); cur = db
         cur.execute("DELETE FROM site_settings")
-        mysql.connection.commit()
-        cur.close()
+        db.commit()
+        db.close()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

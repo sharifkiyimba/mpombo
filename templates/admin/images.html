@@ -1,0 +1,339 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Menu Images — Mpombo Admin{% endblock %}
+{% block page_title %}Menu Images{% endblock %}
+{% block admin_css %}
+.img-intro{
+  background:white;border-radius:6px;border:1px solid var(--cream2);
+  padding:24px 28px;margin-bottom:24px;
+  display:flex;align-items:flex-start;gap:20px;
+}
+.img-intro-icon{
+  width:48px;height:48px;border-radius:10px;
+  background:var(--clay-pale);display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0;
+}
+.img-intro h2{font-family:'Yeseva One',serif;font-size:20px;color:var(--forest);margin-bottom:6px}
+.img-intro p{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:10px}
+.img-intro a{color:var(--clay);font-weight:500;font-size:13px}
+
+.cat-section{margin-bottom:36px}
+.cat-head{
+  display:flex;align-items:center;gap:14px;
+  padding-bottom:14px;border-bottom:2px solid var(--clay-pale);
+  margin-bottom:20px;
+}
+.cat-icon{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--clay-pale);display:flex;align-items:center;
+  justify-content:center;font-size:20px;flex-shrink:0;
+}
+.cat-name{font-family:'Yeseva One',serif;font-size:24px;color:var(--forest)}
+
+.img-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.img-card{
+  background:white;border-radius:6px;border:1px solid var(--cream2);
+  overflow:hidden;transition:all .3s;
+}
+.img-card:hover{box-shadow:0 4px 20px rgba(44,26,14,.1);border-color:var(--clay-pale)}
+.img-preview{
+  height:140px;overflow:hidden;position:relative;
+  background:var(--cream2);cursor:pointer;
+}
+.img-preview img{
+  width:100%;height:100%;object-fit:cover;
+  transition:transform .4s;
+}
+.img-card:hover .img-preview img{transform:scale(1.05)}
+.img-no-photo{
+  width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  color:var(--text3);font-size:13px;gap:8px;
+}
+.img-no-photo i{font-size:28px;color:var(--cream2) }
+.img-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:center;justify-content:center;gap:10px;
+}
+.img-card:hover .img-overlay{display:flex}
+.overlay-btn{
+  padding:7px 14px;border:none;border-radius:4px;
+  font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;
+  transition:all .2s;
+}
+.overlay-btn.change{background:white;color:var(--forest)}
+.overlay-btn.remove{background:#B5251E;color:white}
+.img-body{padding:12px 14px}
+.img-item-name{
+  font-size:13px;font-weight:500;color:var(--forest);
+  margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.img-item-price{font-size:12px;color:var(--clay)}
+.img-status{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  margin-top:4px;
+}
+.img-status.has-img{color:var(--forest3)}
+.img-status.no-img{color:var(--text3)}
+
+/* Modal */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-bg.open{display:flex}
+.modal-box{
+  background:white;border-radius:8px;width:520px;max-width:95vw;
+  overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.modal-head{
+  padding:20px 24px;border-bottom:1px solid var(--cream2);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.modal-title{font-family:'Yeseva One',serif;font-size:20px;color:var(--forest)}
+.modal-x{border:none;background:var(--cream2);width:32px;height:32px;
+  border-radius:50%;font-size:16px;cursor:pointer;transition:all .2s}
+.modal-x:hover{background:var(--clay);color:white}
+.modal-body{padding:24px}
+.modal-preview{
+  height:180px;border-radius:6px;overflow:hidden;
+  background:var(--cream2);margin-bottom:20px;
+  display:flex;align-items:center;justify-content:center;
+  border:2px dashed var(--cream2);
+}
+.modal-preview img{width:100%;height:100%;object-fit:cover;display:none}
+.modal-preview-placeholder{text-align:center;color:var(--text3);font-size:13px}
+.modal-preview-placeholder i{font-size:36px;display:block;margin-bottom:8px;color:var(--cream2)}
+.url-input{
+  width:100%;padding:11px 14px;border:1.5px solid var(--cream2);
+  border-radius:4px;font-family:'Outfit',sans-serif;font-size:14px;
+  outline:none;transition:border-color .3s;margin-bottom:14px;
+}
+.url-input:focus{border-color:var(--clay)}
+.modal-hint{font-size:12px;color:var(--text3);margin-bottom:20px;line-height:1.6}
+.modal-hint a{color:var(--clay)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.mbtn{
+  padding:10px 22px;border:none;border-radius:4px;
+  font-family:'Outfit',sans-serif;font-size:12px;
+  letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:500;cursor:pointer;transition:all .3s;
+}
+.mbtn-save{background:var(--forest);color:white}
+.mbtn-save:hover{background:var(--forest2)}
+.mbtn-cancel{background:var(--cream2);color:var(--text2)}
+.mbtn-cancel:hover{background:var(--cream)}
+
+.toast{
+  position:fixed;bottom:28px;right:28px;z-index:9999;
+  padding:13px 20px;border-radius:6px;font-size:14px;
+  display:none;align-items:center;gap:10px;
+  box-shadow:0 8px 28px rgba(0,0,0,.2);
+}
+.toast.show{display:flex}
+.toast.ok{background:#0D3B22;color:#A7F3C5;border-left:4px solid #3CB371}
+.toast.err{background:#4A0D0A;color:#FFBDBA;border-left:4px solid #E53935}
+
+@media(max-width:1100px){.img-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:800px){.img-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.img-grid{grid-template-columns:1fr}}
+{% endblock %}
+
+{% block admin_content %}
+<div id="toast" class="toast ok"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
+
+<!-- Instructions -->
+<div class="img-intro">
+  <div class="img-intro-icon">📸</div>
+  <div>
+    <h2>Menu Photo Manager</h2>
+    <p>Upload real photos of your food to replace the stock images. You can use <strong>Google Drive</strong>, <strong>ImgBB</strong> or <strong>Cloudinary</strong> to host your photos and paste the link here.</p>
+    <p>
+      <strong>Easiest way:</strong>
+      Upload your food photo to
+      <a href="https://imgbb.com" target="_blank">imgbb.com</a> (free, no account needed) →
+      copy the "Direct link" →
+      paste it below for each item.
+    </p>
+    <p style="color:var(--clay);font-size:13px">
+      <i class="fas fa-lightbulb"></i>
+      Tip: Take photos in good lighting, from directly above or at a slight angle. Square photos work best.
+    </p>
+  </div>
+</div>
+
+{% for cat in menu %}
+<div class="cat-section">
+  <div class="cat-head">
+    <div class="cat-icon">{{ cat.icon }}</div>
+    <div>
+      <div class="cat-name">{{ cat.name }}</div>
+    </div>
+  </div>
+  <div class="img-grid">
+    {% for item in cat.dishes %}
+    {% set current_img = menu_images.get(item.id, item.img) %}
+    {% set has_custom = item.id in menu_images %}
+    <div class="img-card" id="card-{{ item.id }}">
+      <div class="img-preview" onclick="openModal({{ item.id }}, '{{ item.name|e }}', '{{ current_img }}')">
+        <img src="{{ current_img }}" alt="{{ item.name }}"
+          id="img-{{ item.id }}"
+          onerror="this.style.display='none';document.getElementById('ph-{{ item.id }}').style.display='flex'">
+        <div class="img-no-photo" id="ph-{{ item.id }}" style="display:none">
+          <i class="fas fa-camera"></i>
+          <span>No photo</span>
+        </div>
+        <div class="img-overlay">
+          <button class="overlay-btn change" onclick="event.stopPropagation();openModal({{ item.id }},'{{ item.name|e }}','{{ current_img }}')">
+            <i class="fas fa-camera"></i> Change
+          </button>
+          {% if has_custom %}
+          <button class="overlay-btn remove" onclick="event.stopPropagation();removeImg({{ item.id }},'{{ item.name|e }}')">
+            <i class="fas fa-trash"></i> Remove
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      <div class="img-body">
+        <div class="img-item-name" title="{{ item.name }}">{{ item.name }}</div>
+        <div class="img-item-price">UGX {{ "{:,}".format(item.price) }}</div>
+        <div class="img-status {{ 'has-img' if has_custom else 'no-img' }}" id="status-{{ item.id }}">
+          {% if has_custom %}
+          <i class="fas fa-check-circle"></i> Custom photo
+          {% else %}
+          <i class="fas fa-image"></i> Stock photo
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+<!-- Modal -->
+<div class="modal-bg" id="imgModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Set Photo</div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-preview" id="modalPreview">
+        <img id="modalImg" src="" alt="Preview">
+        <div class="modal-preview-placeholder" id="modalPlaceholder">
+          <i class="fas fa-image"></i>
+          Paste a photo URL below to preview
+        </div>
+      </div>
+      <input type="url" class="url-input" id="imgUrl"
+        placeholder="https://i.ibb.co/your-photo-url.jpg"
+        oninput="previewImg(this.value)">
+      <div class="modal-hint">
+        <strong>How to get a photo URL:</strong><br>
+        1. Go to <a href="https://imgbb.com" target="_blank">imgbb.com</a> and upload your food photo<br>
+        2. After upload, click <strong>"Copy BBCode"</strong> → then copy just the URL part<br>
+        3. Or right-click any image on Google → "Copy image address"<br>
+        4. Paste the URL in the box above
+      </div>
+      <div class="modal-btns">
+        <button class="mbtn mbtn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="mbtn mbtn-save" onclick="saveImg()">
+          <i class="fas fa-save"></i> Save Photo
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block admin_js %}
+<script>
+let currentItemId   = null;
+let currentItemName = '';
+
+function showToast(msg, ok=true){
+  const t=document.getElementById('toast');
+  t.className='toast show '+(ok?'ok':'err');
+  document.getElementById('toastMsg').textContent=msg;
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+function openModal(id, name, currentUrl){
+  currentItemId   = id;
+  currentItemName = name;
+  document.getElementById('modalTitle').textContent = 'Set Photo — ' + name;
+  document.getElementById('imgUrl').value = '';
+  document.getElementById('imgModal').classList.add('open');
+  // Show current image in preview
+  if(currentUrl && !currentUrl.includes('unsplash')){
+    previewImg(currentUrl);
+    document.getElementById('imgUrl').value = currentUrl;
+  } else {
+    document.getElementById('modalImg').style.display='none';
+    document.getElementById('modalPlaceholder').style.display='flex';
+  }
+}
+
+function closeModal(){
+  document.getElementById('imgModal').classList.remove('open');
+  currentItemId = null;
+}
+
+function previewImg(url){
+  const img = document.getElementById('modalImg');
+  const ph  = document.getElementById('modalPlaceholder');
+  if(url && url.startsWith('http')){
+    img.src = url;
+    img.style.display = 'block';
+    ph.style.display  = 'none';
+    img.onerror = ()=>{img.style.display='none';ph.style.display='flex'};
+  } else {
+    img.style.display = 'none';
+    ph.style.display  = 'flex';
+  }
+}
+
+function saveImg(){
+  const url = document.getElementById('imgUrl').value.trim();
+  if(!url){showToast('Please paste an image URL first.',false);return}
+  if(!url.startsWith('http')){showToast('URL must start with http:// or https://',false);return}
+  fetch('/admin/images/save',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({item_id:currentItemId, item_name:currentItemName, image_url:url})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      // Update the card image live
+      const img=document.getElementById('img-'+currentItemId);
+      const ph=document.getElementById('ph-'+currentItemId);
+      const st=document.getElementById('status-'+currentItemId);
+      if(img){img.src=url;img.style.display='block';if(ph)ph.style.display='none';}
+      if(st){st.className='img-status has-img';st.innerHTML='<i class="fas fa-check-circle"></i> Custom photo';}
+      showToast('✅ Photo saved for '+currentItemName+'!');
+      closeModal();
+    } else showToast(d.error||'Failed to save.',false);
+  });
+}
+
+function removeImg(id, name){
+  if(!confirm('Remove custom photo for "'+name+'"? It will go back to the stock photo.'))return;
+  fetch('/admin/images/delete',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({item_id:id})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){
+      const st=document.getElementById('status-'+id);
+      if(st){st.className='img-status no-img';st.innerHTML='<i class="fas fa-image"></i> Stock photo';}
+      showToast('Photo removed for '+name+'.');
+      setTimeout(()=>location.reload(),1500);
+    } else showToast(d.error,false);
+  });
+}
+
+// Close modal on background click
+document.getElementById('imgModal').addEventListener('click',function(e){
+  if(e.target===this)closeModal();
+});
+</script>
+{% endblock %}
