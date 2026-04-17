@@ -425,6 +425,11 @@ def order():
 def reserve():
     s=get_settings(); return render_template('reserve.html', config=Config, settings=s)
 
+@app.route('/catering')
+def catering():
+    s = get_settings()
+    return render_template('catering.html', config=Config, settings=s)
+
 # ── Track Order ───────────────────────────────────────────
 @app.route('/track', methods=['GET', 'POST'])
 def track():
