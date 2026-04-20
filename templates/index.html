@@ -318,6 +318,21 @@
 
 {% block extra_js %}
 <script>
+// Homepage floating cart
+function renderHomeCart(){
+  const cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
+  const cnt=cart.reduce((s,i)=>s+i.qty,0);
+  const tot=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const btn=document.getElementById('homeCartBtn');
+  if(btn){
+    btn.style.display=cnt>0?'flex':'none';
+    const c=document.getElementById('homeCartCount');
+    const t=document.getElementById('homeCartTotal');
+    if(c)c.textContent=cnt+' item'+(cnt!==1?'s':'');
+    if(t)t.textContent='UGX '+Math.round(tot).toLocaleString();
+  }
+}
+
 function quickAdd(id,name,price){
   let cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
   const ex=cart.find(i=>i.id===id);
@@ -327,6 +342,8 @@ function quickAdd(id,name,price){
   const btn=event.currentTarget;
   btn.style.background='var(--forest3)';btn.innerHTML='✓';
   setTimeout(()=>{btn.style.background='';btn.innerHTML='+'},1500);
+  renderHomeCart();
 }
+  renderHomeCart();
 </script>
 {% endblock %}

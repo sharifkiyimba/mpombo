@@ -1,307 +1,340 @@
 {% extends "base.html" %}
 {% block title %}Place Order — Mpombo Family Restaurant{% endblock %}
 {% block extra_css %}
-.order-layout{display:grid;grid-template-columns:1fr 390px;gap:28px;
-  max-width:1200px;margin:0 auto;padding:100px 5% 80px}
-.order-panel{background:white;border-radius:6px;padding:28px;
-  border:1px solid var(--cream2);margin-bottom:20px}
-.op-title{font-family:'Yeseva One',serif;font-size:22px;color:var(--forest);
-  margin-bottom:20px;display:flex;align-items:center;gap:9px}
-.menu-mini{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:520px;overflow-y:auto}
-.mmini{display:flex;gap:10px;padding:11px;border:1.5px solid var(--cream2);
-  border-radius:4px;cursor:pointer;transition:all .3s;align-items:flex-start}
-.mmini:hover,.mmini.sel{border-color:var(--clay);background:var(--clay-pale)}
-.mmini img{width:50px;height:50px;border-radius:3px;object-fit:cover;flex-shrink:0}
-.mmini-name{font-size:13px;font-weight:500;color:var(--forest);margin-bottom:2px;line-height:1.2}
-.mmini-price{font-size:12px;color:var(--clay);font-weight:600}
-.mmini-cat{font-size:10px;color:var(--text3);margin-bottom:3px}
-.mmini-qty{display:flex;align-items:center;gap:5px;margin-top:5px}
-.mq-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--cream2);
-  background:transparent;font-size:12px;color:var(--text2);
-  display:flex;align-items:center;justify-content:center;transition:all .2s}
-.mq-btn:hover{background:var(--clay);color:white;border-color:var(--clay)}
-.mq-n{font-size:13px;font-weight:600;min-width:14px;text-align:center}
-.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-.type-opt{padding:14px 8px;border:1.5px solid var(--cream2);border-radius:4px;
-  text-align:center;cursor:pointer;transition:all .3s}
-.type-opt:hover,.type-opt.sel{border-color:var(--clay);background:var(--clay-pale)}
-.type-opt i{font-size:22px;display:block;margin-bottom:5px;color:var(--clay)}
-.type-opt span{font-size:12px;font-weight:500;color:var(--forest)}
-.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pay-opt{padding:13px 10px;border:1.5px solid var(--cream2);border-radius:4px;
-  display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .3s}
-.pay-opt:hover,.pay-opt.sel{border-color:var(--forest2);background:rgba(28,61,46,.05)}
-.pay-opt input{accent-color:var(--forest2)}
-.pay-opt .po-icon{font-size:20px;flex-shrink:0}
-.pay-opt .po-label{font-size:13px;font-weight:500;color:var(--text);line-height:1.2}
-.pay-opt .po-sub{font-size:11px;color:var(--text3)}
-.summary-panel{position:sticky;top:88px;max-height:calc(100vh - 108px);overflow-y:auto}
-.sum-items{margin-bottom:14px;max-height:220px;overflow-y:auto}
-.sum-item{display:flex;justify-content:space-between;align-items:center;
-  padding:9px 0;border-bottom:1px solid var(--cream2);font-size:14px}
-.sum-item:last-child{border-bottom:none}
-.sum-name{color:var(--text2);flex:1;font-size:13px}
-.sum-price{font-weight:700;color:var(--forest);margin-left:10px;font-size:13px}
-.sum-row{display:flex;justify-content:space-between;font-size:14px;color:var(--text2);margin-bottom:7px}
-.sum-total{font-family:'Yeseva One',serif;font-size:22px;color:var(--forest);
-  border-top:2px solid var(--clay-pale);padding-top:12px;margin-top:6px}
-.empty-msg{text-align:center;padding:24px;color:var(--text3);font-size:14px}
-.empty-msg i{font-size:32px;color:var(--cream2);display:block;margin-bottom:10px}
-
-/* Mobile floating cart bar */
-.mobile-cart-bar{
-  display:none;position:fixed;bottom:0;left:0;right:0;z-index:990;
-  background:var(--forest);padding:14px 20px;
-  flex-direction:column;gap:0;
-  box-shadow:0 -4px 20px rgba(0,0,0,.2);
+.order-page{max-width:1100px;margin:0 auto;padding:88px 4% 120px}
+.order-hero{text-align:center;margin-bottom:32px;padding:28px 20px;
+  background:linear-gradient(135deg,var(--forest) 0%,var(--forest2) 100%);
+  border-radius:12px;color:white;}
+.order-hero h1{font-family:'Yeseva One',serif;font-size:clamp(24px,4vw,36px);margin-bottom:4px}
+.order-hero p{color:rgba(255,255,255,.7);font-size:14px}
+.steps-bar{display:flex;align-items:center;justify-content:center;margin-bottom:32px}
+.si{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;position:relative}
+.si:not(:last-child)::after{content:'';position:absolute;top:17px;left:60%;right:-40%;
+  height:2px;background:var(--cream3);z-index:0}
+.si.done:not(:last-child)::after{background:var(--forest3)}
+.si-num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:700;z-index:1;
+  border:2px solid var(--cream3);background:white;color:var(--text3);transition:all .3s}
+.si.active .si-num{background:var(--clay);border-color:var(--clay);color:white;
+  box-shadow:0 4px 12px rgba(184,82,31,.35)}
+.si.done .si-num{background:var(--forest3);border-color:var(--forest3);color:white}
+.si-lbl{font-size:10px;color:var(--text3);text-align:center;font-weight:500}
+.si.active .si-lbl{color:var(--clay);font-weight:700}
+.si.done .si-lbl{color:var(--forest3)}
+.order-grid{display:grid;grid-template-columns:1fr 350px;gap:22px;align-items:start}
+.sc{background:white;border-radius:10px;border:1.5px solid var(--cream2);
+  margin-bottom:14px;overflow:hidden}
+.sc-head{padding:16px 20px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid var(--cream2);background:var(--cream)}
+.sc-head .sn{width:30px;height:30px;border-radius:50%;background:var(--clay);color:white;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.sc-head h3{font-family:'Yeseva One',serif;font-size:17px;color:var(--forest)}
+.sc-body{padding:18px 20px}
+.cat-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:16px}
+.cat-tabs::-webkit-scrollbar{display:none}
+.ct{padding:6px 14px;border-radius:20px;border:1.5px solid var(--cream3);font-size:11px;
+  font-weight:600;background:white;color:var(--text2);white-space:nowrap;cursor:pointer;transition:all .25s}
+.ct.active{background:var(--forest);border-color:var(--forest);color:white}
+.fl{display:flex;flex-direction:column;gap:9px;max-height:420px;overflow-y:auto;padding-right:2px}
+.fl::-webkit-scrollbar{width:3px}
+.fl::-webkit-scrollbar-thumb{background:var(--clay-pale);border-radius:2px}
+.fi{display:flex;gap:11px;align-items:center;padding:11px;border-radius:8px;
+  border:1.5px solid var(--cream2);background:white;transition:all .25s}
+.fi:hover{border-color:var(--clay-pale);background:var(--cream)}
+.fi.sel{border-color:var(--forest3);background:var(--forest-light)}
+.fi-img{width:58px;height:58px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.fi-info{flex:1;min-width:0}
+.fi-name{font-size:13px;font-weight:600;color:var(--forest);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.fi-desc{font-size:11px;color:var(--text3);line-height:1.3;margin-bottom:4px}
+.fi-price{font-family:'Yeseva One',serif;font-size:15px;color:var(--clay)}
+.fc{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.fb{width:28px;height:28px;border-radius:50%;border:none;background:var(--forest);color:white;
+  font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s}
+.fb:hover{background:var(--clay);transform:scale(1.1)}
+.fb.m{background:var(--cream3);color:var(--text2)}
+.fb.m:hover{background:var(--clay);color:white}
+.fn{font-size:14px;font-weight:700;min-width:18px;text-align:center;color:var(--forest)}
+.type-g{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.to{padding:14px 8px;border-radius:8px;border:1.5px solid var(--cream2);
+  text-align:center;cursor:pointer;transition:all .3s;background:white}
+.to.sel{border-color:var(--forest);background:var(--forest-light)}
+.to i{font-size:24px;display:block;margin-bottom:6px;color:var(--forest)}
+.to span{font-size:12px;font-weight:600;color:var(--forest)}
+.del-extra{background:var(--cream);border-radius:8px;padding:14px;margin-top:12px}
+.fp{display:inline-flex;align-items:center;gap:6px;background:var(--gold-pale);
+  border:1px solid var(--gold2);border-radius:20px;padding:5px 12px;
+  font-size:12px;color:var(--text2);margin-top:9px}
+.fp strong{color:var(--clay)}
+.pkg-r{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--cream2)}
+.pkg-r:last-child{border-bottom:none}
+.pkg-e{font-size:24px;flex-shrink:0}
+.pkg-i{flex:1}
+.pkg-n{font-size:13px;font-weight:600;color:var(--forest);margin-bottom:1px}
+.pkg-p{font-size:11px;color:var(--clay)}
+.pk-c{display:flex;align-items:center;gap:8px}
+.pk-b{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--cream3);background:white;
+  font-size:15px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center}
+.pk-b:hover{background:var(--clay);border-color:var(--clay);color:white}
+.pk-n{font-size:15px;font-weight:700;min-width:20px;text-align:center;color:var(--forest)}
+.pk-t{font-size:12px;font-weight:700;color:var(--clay);min-width:72px;text-align:right}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:6px;font-weight:600}
+.fg input,.fg select,.fg textarea{width:100%;padding:11px 13px;
+  border:1.5px solid var(--border);border-radius:6px;
+  font-family:'Outfit',sans-serif;font-size:14px;color:var(--text);
+  background:white;outline:none;transition:border-color .3s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--clay)}
+.fg textarea{resize:vertical;min-height:72px}
+.pay-g{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.po{padding:12px;border-radius:8px;border:1.5px solid var(--cream2);
+  display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .3s;background:white}
+.po.sel{border-color:var(--forest);background:var(--forest-light)}
+.po input{accent-color:var(--forest);flex-shrink:0}
+.po .pi{font-size:20px;flex-shrink:0}
+.po .pl{font-size:12px;font-weight:600;color:var(--forest);line-height:1.3}
+.po .ps{font-size:10px;color:var(--text3)}
+/* sticky cart */
+.cart-panel{position:sticky;top:88px;background:white;border-radius:10px;
+  border:1.5px solid var(--cream2);overflow:hidden;box-shadow:0 4px 24px rgba(44,26,14,.08)}
+.cp-head{padding:14px 18px;background:var(--forest);display:flex;align-items:center;justify-content:space-between}
+.cp-head h3{font-family:'Yeseva One',serif;font-size:17px;color:white}
+.cp-badge{background:var(--clay);color:white;width:22px;height:22px;border-radius:50%;
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cp-list{max-height:260px;overflow-y:auto;padding:10px 14px}
+.cp-list::-webkit-scrollbar{width:3px}
+.cp-list::-webkit-scrollbar-thumb{background:var(--clay-pale)}
+.ci{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--cream2)}
+.ci:last-child{border-bottom:none}
+.ci-n{flex:1;font-size:12px;color:var(--text2);font-weight:500}
+.ci-q{font-size:11px;color:var(--text3);white-space:nowrap}
+.ci-p{font-size:12px;font-weight:700;color:var(--forest);white-space:nowrap}
+.ci-x{border:none;background:none;color:var(--text3);font-size:12px;cursor:pointer;padding:2px}
+.ci-x:hover{color:var(--clay)}
+.cp-empty{padding:28px 14px;text-align:center;color:var(--text3)}
+.cp-empty i{font-size:32px;color:var(--cream3);display:block;margin-bottom:8px}
+.cp-empty p{font-size:12px;line-height:1.6}
+.cp-tots{padding:12px 14px;border-top:1px solid var(--cream2);background:var(--cream)}
+.ctr{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:5px}
+.ct-tot{display:flex;justify-content:space-between;font-family:'Yeseva One',serif;
+  font-size:19px;color:var(--forest);padding-top:9px;border-top:2px solid var(--clay-pale);margin-top:3px}
+.conf-btn{display:flex;align-items:center;justify-content:center;gap:7px;
+  width:calc(100% - 28px);margin:12px 14px;padding:13px;
+  background:var(--clay);color:white;border:none;border-radius:7px;
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .3s}
+.conf-btn:hover{background:var(--clay2)}
+.conf-btn:disabled{background:var(--text3);cursor:not-allowed}
+/* mobile bar */
+.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:990;
+  background:var(--forest);padding:11px 18px;box-shadow:0 -4px 20px rgba(0,0,0,.25)}
+.mob-bar.on{display:block}
+.mb-inner{display:flex;align-items:center;gap:10px}
+.mb-info{flex:1}
+.mb-cnt{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:1px}
+.mb-tot{font-family:'Yeseva One',serif;font-size:18px;color:var(--gold2)}
+.mb-btn{padding:11px 18px;background:var(--clay);color:white;border:none;border-radius:7px;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal-box{background:white;border-radius:12px;padding:36px 28px;text-align:center;
+  max-width:400px;width:100%;animation:mIn .3s ease}
+@keyframes mIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+@media(max-width:860px){
+  .order-grid{grid-template-columns:1fr}
+  .cart-panel{display:none}
+  .mob-bar.on{display:block}
+  body{padding-bottom:76px}
 }
-.mobile-cart-bar.has-items{display:flex}
-.mcb-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.mcb-count{font-size:13px;color:rgba(255,255,255,.7)}
-.mcb-total{font-family:'Yeseva One',serif;font-size:20px;color:var(--gold2)}
-.mcb-btn{
-  width:100%;padding:14px;background:var(--clay);color:white;border:none;
-  border-radius:6px;font-family:'Outfit',sans-serif;font-size:14px;
-  font-weight:700;letter-spacing:1px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
+@media(max-width:540px){
+  .type-g{grid-template-columns:1fr 1fr}
+  .pay-g{grid-template-columns:1fr}
+  .f2{grid-template-columns:1fr}
+  .si-lbl{font-size:9px}
 }
-.mcb-btn:active{background:var(--clay2)}
-.fee-info{background:var(--gold-pale);padding:11px 14px;border-radius:4px;
-  font-size:13px;color:var(--text2);margin-top:-10px;margin-bottom:16px}
-.pkg-section{
-  background:var(--forest-light);border:1.5px solid rgba(28,61,46,.15);
-  border-radius:8px;padding:20px;margin-bottom:16px;
-}
-.pkg-title{font-size:14px;font-weight:700;color:var(--forest);
-  margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.pkg-sub{font-size:12px;color:var(--text3);margin-bottom:16px}
-.pkg-row{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 0;border-bottom:1px solid rgba(28,61,46,.1)}
-.pkg-row:last-child{border-bottom:none}
-.pkg-info{flex:1}
-.pkg-name{font-size:14px;font-weight:600;color:var(--forest)}
-.pkg-price{font-size:12px;color:var(--clay);margin-top:2px}
-.pkg-ctrl{display:flex;align-items:center;gap:10px}
-.pkg-btn{width:32px;height:32px;border-radius:50%;
-  border:1.5px solid var(--border);background:white;
-  font-size:16px;font-weight:700;color:var(--text2);
-  display:flex;align-items:center;justify-content:center;
-  transition:all .2s;cursor:pointer}
-.pkg-btn:hover{background:var(--clay);border-color:var(--clay);color:white}
-.pkg-num{font-size:16px;font-weight:700;min-width:24px;
-  text-align:center;color:var(--forest)}
-.pkg-total{font-size:13px;font-weight:600;color:var(--clay);
-  min-width:70px;text-align:right}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:5000;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .3s}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:white;border-radius:8px;padding:44px;text-align:center;
-  max-width:440px;width:90%;transform:scale(.95);transition:transform .3s}
-.modal-overlay.open .modal{transform:scale(1)}
-@media(max-width:900px){
-  .order-layout{grid-template-columns:1fr}
-  .summary-panel{display:none}
-  .mobile-cart-bar.has-items{display:flex}
-  body{padding-bottom:130px}
-}
-@media(min-width:901px){.mobile-cart-bar{display:none!important}}
-@media(max-width:580px){.menu-mini{grid-template-columns:1fr}.type-grid{grid-template-columns:1fr}.pay-grid{grid-template-columns:1fr}}
 {% endblock %}
 
 {% block content %}
-<div style="height:72px"></div>
-<div class="order-layout">
-  <div>
-    <!-- Step 1: Choose Food -->
-    <div class="order-panel">
-      <div class="op-title">🍌 Step 1: Choose Your Food</div>
-      <div class="menu-mini" id="menuMini">
-        {% for cat in menu %}{% for item in cat.dishes %}
-        <div class="mmini" id="mc{{ item.id }}" onclick="selectItem(event,{{ item.id }},'{{ item.name|e }}',{{ item.price }},'{{ item.img }}')">
-          <img src="{{ menu_images.get(item.id, item.img) }}" alt="{{ item.name }}" onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=100&q=60'">
-          <div style="flex:1">
-            <div class="mmini-cat">{{ cat.name }}</div>
-            <div class="mmini-name">{{ item.name }}</div>
-            <div class="mmini-price">UGX {{ "{:,}".format(item.price) }}</div>
-            <div class="mmini-qty" id="mqc{{ item.id }}" style="display:none">
-              <button class="mq-btn" onclick="event.stopPropagation();mqty({{ item.id }},-1)">−</button>
-              <span class="mq-n" id="mqn{{ item.id }}">0</span>
-              <button class="mq-btn" onclick="event.stopPropagation();mqty({{ item.id }},1,'{{ item.name|e }}',{{ item.price }})">+</button>
-            </div>
-          </div>
-        </div>
-        {% endfor %}{% endfor %}
-      </div>
+<div class="order-page">
+  <div class="order-hero">
+    <h1>🍽️ Place Your Order</h1>
+    <p>Fresh Ugandan food — delivery or pickup across Lyantonde</p>
+  </div>
+  <!-- Steps bar -->
+  <div class="steps-bar">
+    {% for n,lbl in [(1,'Food'),(2,'Delivery'),(3,'Packaging'),(4,'Details'),(5,'Payment')] %}
+    <div class="si {% if n==1 %}active{% endif %}" id="si{{n}}">
+      <div class="si-num">{{n}}</div>
+      <div class="si-lbl">{{lbl}}</div>
     </div>
-
-    <!-- Step 2: Order Type -->
-    <div class="order-panel">
-      <div class="op-title">🚗 Step 2: How Would You Like It?</div>
-      <div class="type-grid">
-        <div class="type-opt sel" id="to-delivery" onclick="setType('delivery')">
-          <i class="fas fa-motorcycle"></i><span>Delivery</span>
-        </div>
-        <div class="type-opt" id="to-pickup" onclick="setType('pickup')">
-          <i class="fas fa-store"></i><span>Pick Up</span>
-        </div>
-        <div class="type-opt" id="to-dine_in" onclick="setType('dine_in')">
-          <i class="fas fa-utensils"></i><span>Dine In</span>
-        </div>
-      </div>
-      <div id="delivery-fields">
-        <div class="form-group">
-          <label>Delivery Address</label>
-          <input type="text" id="address" placeholder="Your location in Lyantonde or nearby">
-        </div>
-        <div class="form-group">
-          <label>Estimated Distance from Restaurant (km)</label>
-          <input type="number" id="distance" min="0" max="20" step="0.5" placeholder="e.g. 3" oninput="updateFee()">
-        </div>
-        <div class="fee-info" id="feeInfo">📍 Enter your distance to calculate the delivery fee.</div>
-      </div>
-    </div>
-
-    <!-- Step 2b: Packaging -->
-    <div class="order-panel" id="packaging-panel">
-      <div class="op-title">📦 Packaging</div>
-      <div style="background:var(--gold-pale);border-radius:6px;padding:12px 16px;
-        font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">
-        <i class="fas fa-info-circle" style="color:var(--gold);margin-right:6px"></i>
-        Select packaging for your order. Silverplates keep food fresh and warm during delivery.
-      </div>
-      <div class="pkg-section">
-        <!-- Silverplate -->
-        <div class="pkg-row">
-          <div class="pkg-info">
-            <div class="pkg-name">🍽️ Silverplate</div>
-            <div class="pkg-price">UGX 1,000 each</div>
-          </div>
-          <div class="pkg-ctrl">
-            <button class="pkg-btn" onclick="changePkg('plate',-1)">−</button>
-            <span class="pkg-num" id="plateNum">0</span>
-            <button class="pkg-btn" onclick="changePkg('plate',1)">+</button>
-          </div>
-          <div class="pkg-total" id="plateCost">UGX 0</div>
-        </div>
-        <!-- Small juice glass -->
-        <div class="pkg-row">
-          <div class="pkg-info">
-            <div class="pkg-name">🥤 Small Juice Glass</div>
-            <div class="pkg-price">UGX 1,000 each</div>
-          </div>
-          <div class="pkg-ctrl">
-            <button class="pkg-btn" onclick="changePkg('smallglass',-1)">−</button>
-            <span class="pkg-num" id="smallglassNum">0</span>
-            <button class="pkg-btn" onclick="changePkg('smallglass',1)">+</button>
-          </div>
-          <div class="pkg-total" id="smallglassCost">UGX 0</div>
-        </div>
-        <!-- Big juice glass -->
-        <div class="pkg-row">
-          <div class="pkg-info">
-            <div class="pkg-name">🧃 Big Juice Glass</div>
-            <div class="pkg-price">UGX 2,000 each</div>
-          </div>
-          <div class="pkg-ctrl">
-            <button class="pkg-btn" onclick="changePkg('bigglass',-1)">−</button>
-            <span class="pkg-num" id="bigglassNum">0</span>
-            <button class="pkg-btn" onclick="changePkg('bigglass',1)">+</button>
-          </div>
-          <div class="pkg-total" id="bigglassCost">UGX 0</div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;
-        padding:12px 16px;background:white;border-radius:6px;border:1.5px solid var(--border)">
-        <span style="font-size:14px;font-weight:600;color:var(--forest)">Total Packaging</span>
-        <span style="font-family:'Yeseva One',serif;font-size:18px;color:var(--clay)" id="pkgTotal">UGX 0</span>
-      </div>
-    </div>
-
-    <!-- Step 3: Details -->
-    <div class="order-panel">
-      <div class="op-title">👤 Step 3: Your Details</div>
-      <div class="form-row">
-        <div class="form-group"><label>Full Name *</label><input type="text" id="custName" placeholder="Nakato Sarah" required></div>
-        <div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" placeholder="+256 7XX XXX XXX" required></div>
-      </div>
-      <div class="form-group"><label>Email (optional)</label><input type="email" id="custEmail" placeholder="you@example.com"></div>
-      <div class="form-group"><label>Special Instructions</label><textarea id="custNotes" placeholder="Allergies, extra sauce, preferences..." style="min-height:72px"></textarea></div>
-    </div>
-
-    <!-- Step 4: Payment -->
-    <div class="order-panel" id="payStep">
-      <div class="op-title">💳 Step 4: Payment Method</div>
-      <div class="pay-grid">
-        <label class="pay-opt sel" id="po-mtn">
-          <input type="radio" name="payment" value="mtn_momo" checked>
-          <span class="po-icon">📱</span>
-          <div><div class="po-label">MTN Mobile Money</div><div class="po-sub">Pay via MTN MoMo</div></div>
-        </label>
-        <label class="pay-opt" id="po-airtel">
-          <input type="radio" name="payment" value="airtel_money">
-          <span class="po-icon">📲</span>
-          <div><div class="po-label">Airtel Money</div><div class="po-sub">Pay via Airtel MoMo</div></div>
-        </label>
-        <label class="pay-opt" id="po-cash">
-          <input type="radio" name="payment" value="cash">
-          <span class="po-icon">💵</span>
-          <div><div class="po-label">Cash on Delivery</div><div class="po-sub">Pay when food arrives</div></div>
-        </label>
-        <label class="pay-opt" id="po-card">
-          <input type="radio" name="payment" value="card">
-          <span class="po-icon">💳</span>
-          <div><div class="po-label">Card Payment</div><div class="po-sub">Visa / Mastercard</div></div>
-        </label>
-      </div>
-    </div>
+    {% endfor %}
   </div>
 
-  <!-- Summary Panel -->
-  <div class="summary-panel">
-    <div class="order-panel">
-      <div class="op-title" style="font-size:19px">📋 Order Summary</div>
-      <div class="sum-items" id="sumItems">
-        <div class="empty-msg"><i class="fas fa-shopping-bag"></i>No items yet.<br>Choose food from Step 1!</div>
+  <div class="order-grid">
+    <div>
+      <!-- Step 1: Food -->
+      <div class="sc">
+        <div class="sc-head"><div class="sn">1</div><h3>Choose Your Food</h3></div>
+        <div class="sc-body">
+          <div class="cat-tabs">
+            {% for cat in menu %}
+            <button class="ct {% if loop.first %}active{% endif %}" onclick="showCat({{cat.id}},this)">
+              {{cat.icon}} {{cat.name}}
+            </button>
+            {% endfor %}
+          </div>
+          {% for cat in menu %}
+          <div class="fl" id="cat-{{cat.id}}" {% if not loop.first %}style="display:none"{% endif %}>
+            {% for item in cat.dishes %}
+            <div class="fi" id="fi-{{item.id}}">
+              <img src="{{ menu_images.get(item.id, item.img) }}" alt="{{item.name}}" class="fi-img"
+                onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=120&q=60'">
+              <div class="fi-info">
+                <div class="fi-name">{{item.name}}</div>
+                <div class="fi-desc">{{item.desc[:55]}}{% if item.desc|length>55 %}...{% endif %}</div>
+                <div class="fi-price">UGX {{ "{:,}".format(item.price) }}</div>
+              </div>
+              <div class="fc">
+                <button class="fb m" onclick="chg({{item.id}},-1)" id="mb-{{item.id}}" style="display:none">−</button>
+                <span class="fn" id="fn-{{item.id}}" style="display:none">0</span>
+                <button class="fb" onclick="chg({{item.id}},1,'{{item.name|e}}',{{item.price}})">+</button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
       </div>
-      <div id="sumDetails" style="display:none">
-        <div class="sum-row"><span>Subtotal</span><span id="sumSub" style="font-weight:600">UGX 0</span></div>
-        <div class="sum-row"><span>Delivery Fee</span><span id="sumFee" style="color:var(--clay);font-weight:500">UGX 0</span></div>
-        <div class="sum-row"><span>Packaging</span><span id="sumPkg" style="color:var(--forest2);font-weight:500">None</span></div>
-        <div class="sum-row sum-total"><span>Total</span><span id="sumTotal">UGX 0</span></div>
-        <button onclick="placeOrder()" class="btn btn-clay" style="width:100%;justify-content:center;margin-top:18px">
-          <i class="fas fa-check-circle"></i> Confirm Order
-        </button>
-        <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">
-          Or order via <a href="https://wa.me/{{ settings.restaurant_whatsapp }}" target="_blank" style="color:var(--forest2)">WhatsApp</a>
-        </p>
+
+      <!-- Step 2: Order type -->
+      <div class="sc">
+        <div class="sc-head"><div class="sn">2</div><h3>How Would You Like It?</h3></div>
+        <div class="sc-body">
+          <div class="type-g">
+            <div class="to sel" id="to-delivery" onclick="setType('delivery')"><i class="fas fa-motorcycle"></i><span>Delivery</span></div>
+            <div class="to" id="to-pickup" onclick="setType('pickup')"><i class="fas fa-store"></i><span>Pick Up</span></div>
+            <div class="to" id="to-dine_in" onclick="setType('dine_in')"><i class="fas fa-utensils"></i><span>Dine In</span></div>
+          </div>
+          <div id="del-extra" class="del-extra">
+            <div class="fg"><label>Delivery Address</label>
+              <input type="text" id="address" placeholder="Your location in Lyantonde or nearby"></div>
+            <div class="fg" style="margin-bottom:0"><label>Distance from Restaurant (km)</label>
+              <input type="number" id="distance" min="0" max="{{ settings.max_delivery_km_int }}" step="0.5" placeholder="e.g. 3" oninput="updFee()"></div>
+            <div class="fp" id="feeInfo">📍 Enter distance to calculate delivery fee</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Packaging -->
+      <div class="sc" id="sc-pkg">
+        <div class="sc-head"><div class="sn">3</div><h3>Packaging</h3></div>
+        <div class="sc-body">
+          <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Select packaging for your order. Silverplates keep food warm during delivery.</p>
+          {% for emoji,name,key,price in [('🍽️','Silverplate','plate',1000),('🥤','Small Juice Glass','sg',1000),('🧃','Big Juice Glass','bg',2000)] %}
+          <div class="pkg-r">
+            <span class="pkg-e">{{emoji}}</span>
+            <div class="pkg-i"><div class="pkg-n">{{name}}</div><div class="pkg-p">UGX {{ "{:,}".format(price) }} each</div></div>
+            <div class="pk-c">
+              <button class="pk-b" onclick="chgPkg('{{key}}',-1)">−</button>
+              <span class="pk-n" id="{{key}}N">0</span>
+              <button class="pk-b" onclick="chgPkg('{{key}}',1)">+</button>
+            </div>
+            <div class="pk-t" id="{{key}}C">UGX 0</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Step 4: Details -->
+      <div class="sc">
+        <div class="sc-head"><div class="sn">4</div><h3>Your Details</h3></div>
+        <div class="sc-body">
+          <div class="f2">
+            <div class="fg"><label>Full Name *</label><input type="text" id="custName" placeholder="Nakato Sarah"></div>
+            <div class="fg"><label>Phone Number *</label><input type="tel" id="custPhone" placeholder="+256 7XX XXX XXX"></div>
+          </div>
+          <div class="fg"><label>Email (optional)</label><input type="email" id="custEmail" placeholder="you@email.com"></div>
+          <div class="fg"><label>Special Instructions</label><textarea id="custNotes" placeholder="Allergies, extra sauce, preferences..."></textarea></div>
+        </div>
+      </div>
+
+      <!-- Step 5: Payment -->
+      <div class="sc" id="payStep">
+        <div class="sc-head"><div class="sn">5</div><h3>Payment Method</h3></div>
+        <div class="sc-body">
+          <div class="pay-g">
+            <label class="po sel" onclick="selP(this)"><input type="radio" name="pay" value="mtn_momo" checked><span class="pi">📱</span><div><div class="pl">MTN Mobile Money</div><div class="ps">Pay via MTN MoMo</div></div></label>
+            <label class="po" onclick="selP(this)"><input type="radio" name="pay" value="airtel_money"><span class="pi">📲</span><div><div class="pl">Airtel Money</div><div class="ps">Pay via Airtel MoMo</div></div></label>
+            <label class="po" onclick="selP(this)"><input type="radio" name="pay" value="cash"><span class="pi">💵</span><div><div class="pl">Cash on Delivery</div><div class="ps">Pay when food arrives</div></div></label>
+            <label class="po" onclick="selP(this)"><input type="radio" name="pay" value="card"><span class="pi">💳</span><div><div class="pl">Card Payment</div><div class="ps">Visa / Mastercard</div></div></label>
+          </div>
+          <button onclick="placeOrder()" class="conf-btn" style="width:100%;margin:18px 0 0">
+            <i class="fas fa-check-circle"></i> Confirm &amp; Place Order
+          </button>
+          <p style="text-align:center;font-size:11px;color:var(--text3);margin-top:8px">
+            Or order via <a href="https://wa.me/{{ settings.restaurant_whatsapp }}" target="_blank" style="color:var(--forest2)">WhatsApp</a>
+          </p>
+        </div>
+      </div>
+    </div><!-- end left col -->
+
+    <!-- RIGHT: Sticky Cart -->
+    <div>
+      <div class="cart-panel">
+        <div class="cp-head">
+          <h3>Your Order</h3>
+          <div class="cp-badge" id="cpBadge">0</div>
+        </div>
+        <div id="cpList">
+          <div class="cp-empty"><i class="fas fa-shopping-bag"></i><p>No items yet.<br>Add food from Step 1!</p></div>
+        </div>
+        <div id="cpTots" style="display:none">
+          <div class="cp-tots">
+            <div class="ctr"><span>Subtotal</span><span id="ctSub">UGX 0</span></div>
+            <div class="ctr"><span>Delivery</span><span id="ctFee">—</span></div>
+            <div class="ctr"><span>Packaging</span><span id="ctPkg">UGX 0</span></div>
+            <div class="ct-tot"><span>Total</span><span id="ctTot">UGX 0</span></div>
+          </div>
+          <button onclick="placeOrder()" class="conf-btn" id="confBtn">
+            <i class="fas fa-check-circle"></i> Confirm Order
+          </button>
+        </div>
+        <div id="cpEmpty2" style="display:none">
+          <button class="conf-btn" disabled style="opacity:.5">Add items first</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Mobile Cart Bar (shown on phones) -->
-<div class="mobile-cart-bar" id="mobileCartBar">
-  <div class="mcb-top">
-    <span class="mcb-count" id="mcbCount">0 items</span>
-    <span class="mcb-total" id="mcbTotal">UGX 0</span>
+<!-- Mobile bar -->
+<div class="mob-bar" id="mobBar">
+  <div class="mb-inner">
+    <div class="mb-info">
+      <div class="mb-cnt" id="mbCnt">0 items</div>
+      <div class="mb-tot" id="mbTot">UGX 0</div>
+    </div>
+    <button class="mb-btn" onclick="placeOrder()">
+      <i class="fas fa-check-circle"></i> Order Now
+    </button>
   </div>
-  <button class="mcb-btn" onclick="scrollToPayment()">
-    <i class="fas fa-lock"></i> Proceed to Payment
-  </button>
 </div>
 
 <!-- Success Modal -->
-<div class="modal-overlay" id="successModal">
-  <div class="modal">
+<div class="modal-bg" id="successModal">
+  <div class="modal-box">
     <div style="font-size:52px;margin-bottom:14px">🎉</div>
-    <h2 style="font-family:'Yeseva One',serif;font-size:28px;color:var(--forest);margin-bottom:8px">Order Placed!</h2>
-    <p style="font-size:13px;color:var(--text3);margin-bottom:4px">Your order number:</p>
-    <p id="modalOrderNum" style="font-family:'Yeseva One',serif;font-size:20px;color:var(--clay);margin-bottom:18px">MP-...</p>
-    <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:26px">Thank you! We are preparing your food and will call to confirm. 🍌🔥</p>
+    <div style="font-family:'Yeseva One',serif;font-size:26px;color:var(--forest);margin-bottom:6px">Order Placed!</div>
+    <div style="font-family:'Yeseva One',serif;font-size:18px;color:var(--clay);margin:6px 0 14px" id="modalNum">MP-...</div>
+    <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:22px">Thank you! We are preparing your food and will call you to confirm. 🍌🔥</p>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <a id="trackLink" href="#" class="btn btn-forest btn-sm">Track My Order</a>
-      <button onclick="closeModal()" class="btn btn-outline-clay btn-sm">Close</button>
+      <a href="/track" class="btn btn-forest btn-sm">Track My Order</a>
+      <button onclick="document.getElementById('successModal').classList.remove('open')" class="btn btn-outline-clay btn-sm">Close</button>
     </div>
   </div>
 </div>
@@ -310,182 +343,139 @@
 {% block extra_js %}
 <script>
 let cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
-let orderType='delivery';
-let deliveryFee={{ settings.delivery_base_fee_int }};
-// Packaging
-const PKG = {
-  plate:     {qty:0, price:1000,  numId:'plateNum',    costId:'plateCost'},
-  smallglass:{qty:0, price:1000,  numId:'smallglassNum', costId:'smallglassCost'},
-  bigglass:  {qty:0, price:2000,  numId:'bigglassNum',   costId:'bigglassCost'},
-};
-function changePkg(type, delta){
-  const p = PKG[type];
-  p.qty = Math.max(0, p.qty + delta);
-  document.getElementById(p.numId).textContent = p.qty;
-  document.getElementById(p.costId).textContent = 'UGX ' + (p.qty * p.price).toLocaleString();
-  updatePkgTotal();
-  render();
-}
-function pkgTotal(){
-  return Object.values(PKG).reduce((s,p)=>s+p.qty*p.price, 0);
-}
-function updatePkgTotal(){
-  document.getElementById('pkgTotal').textContent = 'UGX ' + pkgTotal().toLocaleString();
-}
-function getPkgList(){
-  const list=[];
-  if(PKG.plate.qty>0)     list.push({name:'Silverplate',      qty:PKG.plate.qty,     price:1000});
-  if(PKG.smallglass.qty>0)list.push({name:'Small Juice Glass', qty:PKG.smallglass.qty,price:1000});
-  if(PKG.bigglass.qty>0)  list.push({name:'Big Juice Glass',   qty:PKG.bigglass.qty,  price:2000});
-  return list;
+let otype='delivery', dfee={{ settings.delivery_base_fee_int }};
+const BASE={{ settings.delivery_base_fee_int }},PKM={{ settings.delivery_per_km_int }},
+      MAXK={{ settings.max_delivery_km_int }},FREE={{ settings.free_delivery_min_int }};
+const PKG={plate:{q:0,p:1000},sg:{q:0,p:1000},bg:{q:0,p:2000}};
+const ugx=n=>'UGX '+Math.round(n).toLocaleString();
+
+function showCat(id,btn){
+  document.querySelectorAll('.fl').forEach(l=>l.style.display='none');
+  document.querySelectorAll('.ct').forEach(t=>t.classList.remove('active'));
+  const el=document.getElementById('cat-'+id);
+  el.style.display='flex';el.style.flexDirection='column';
+  btn.classList.add('active');
 }
 
-function ugx(n){return 'UGX '+parseInt(n).toLocaleString()}
-
-// Restore cart quantities
-cart.forEach(i=>{
-  const qc=document.getElementById('mqc'+i.id);
-  const qn=document.getElementById('mqn'+i.id);
-  const mc=document.getElementById('mc'+i.id);
-  if(qc)qc.style.display='flex';
-  if(qn)qn.textContent=i.qty;
-  if(mc&&i.qty>0)mc.classList.add('sel');
-});
-
-function selectItem(e,id,name,price,img){
-  let ex=cart.find(i=>i.id===id);
-  if(!ex){
-    cart.push({id,name,price,img,qty:1});
-    const qc=document.getElementById('mqc'+id);
-    const qn=document.getElementById('mqn'+id);
-    if(qc)qc.style.display='flex';
-    if(qn)qn.textContent=1;
-    e.currentTarget.classList.add('sel');
-  }
-  save();render();
+function chg(id,delta,name,price){
+  let it=cart.find(i=>i.id===id);
+  if(delta>0&&!it){cart.push({id,name,price,qty:1})}
+  else if(it){it.qty=Math.max(0,it.qty+delta);if(!it.qty)cart=cart.filter(i=>i.id!==id)}
+  save();updUI(id);render();
 }
-function mqty(id,delta,name,price){
-  let ex=cart.find(i=>i.id===id);
-  if(delta>0&&!ex){cart.push({id,name,price,qty:1})}
-  else if(ex){
-    ex.qty=Math.max(0,ex.qty+delta);
-    if(ex.qty===0){
-      cart=cart.filter(i=>i.id!==id);
-      const qc=document.getElementById('mqc'+id);
-      if(qc)qc.style.display='none';
-      const mc=document.getElementById('mc'+id);
-      if(mc)mc.classList.remove('sel');
-    }
-  }
-  const qn=document.getElementById('mqn'+id);
-  if(qn)qn.textContent=(cart.find(i=>i.id===id)||{qty:0}).qty;
-  save();render();
+
+function updUI(id){
+  const it=cart.find(i=>i.id===id),q=it?it.qty:0;
+  const mb=document.getElementById('mb-'+id),fn=document.getElementById('fn-'+id),fi=document.getElementById('fi-'+id);
+  if(mb)mb.style.display=q>0?'flex':'none';
+  if(fn){fn.style.display=q>0?'block':'none';fn.textContent=q}
+  if(fi)fi.classList.toggle('sel',q>0);
 }
-function save(){sessionStorage.setItem('mpombo_cart',JSON.stringify(cart))}
+
+function rmItem(id){cart=cart.filter(i=>i.id!==id);save();updUI(id);render()}
 
 function setType(t){
-  orderType=t;
-  ['delivery','pickup','dine_in'].forEach(x=>{
-    document.getElementById('to-'+x).classList.toggle('sel',x===t);
-  });
-  document.getElementById('delivery-fields').style.display=t==='delivery'?'block':'none';
-  // Show packaging only for delivery and pickup
-  const showPkg = t==='delivery'||t==='pickup';
-  document.getElementById('packaging-panel').style.display=showPkg?'block':'none';
-  if(t!=='delivery')deliveryFee=0;
-  else updateFee();
+  otype=t;
+  ['delivery','pickup','dine_in'].forEach(x=>document.getElementById('to-'+x).classList.toggle('sel',x===t));
+  document.getElementById('del-extra').style.display=t==='delivery'?'block':'none';
+  document.getElementById('sc-pkg').style.display=(t==='delivery'||t==='pickup')?'block':'none';
+  if(t!=='delivery')dfee=0; else updFee();
   render();
 }
-function updateFee(){
+
+function updFee(){
   const d=parseFloat(document.getElementById('distance').value)||0;
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const fi=document.getElementById('feeInfo');
-  if(d>{{ settings.max_delivery_km_int }}){fi.innerHTML='❌ Exceeds {{ settings.max_delivery_km_int }}km max range. Please contact us.';deliveryFee=null;return}
-  if(sub>={{ settings.free_delivery_min_int }}){deliveryFee=0;fi.innerHTML='🎉 <strong>Free delivery!</strong> Orders above UGX {{ "{:,}".format(settings.free_delivery_min_int) }} qualify.'}
-  else{deliveryFee={{ settings.delivery_base_fee_int }}+(d*{{ settings.delivery_per_km_int }});fi.innerHTML=`🚗 Delivery fee: <strong>${ugx(deliveryFee)}</strong> (${d}km × UGX {{ "{:,}".format(settings.delivery_per_km_int) }} + UGX {{ "{:,}".format(settings.delivery_base_fee_int) }} base)`}
+  if(d>MAXK){fi.innerHTML='❌ Exceeds '+MAXK+'km max range.';dfee=null;render();return}
+  if(sub>=FREE){dfee=0;fi.innerHTML='🎉 <strong>Free delivery!</strong> Orders above '+ugx(FREE)+' qualify.'}
+  else{dfee=BASE+(d*PKM);fi.innerHTML='🚗 Fee: <strong>'+ugx(dfee)+'</strong> ('+d+'km)'}
   render();
 }
+
+function chgPkg(k,d){
+  const p=PKG[k];p.q=Math.max(0,p.q+d);
+  document.getElementById(k+'N').textContent=p.q;
+  document.getElementById(k+'C').textContent=ugx(p.q*p.p);
+  render();
+}
+const pkgTot=()=>Object.values(PKG).reduce((s,p)=>s+p.q*p.p,0);
+
 function render(){
-  updateMobileBar();
+  const cnt=cart.reduce((s,i)=>s+i.qty,0);
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const fee=orderType==='delivery'?(deliveryFee||0):0;
-  const pkg=(orderType==='delivery'||orderType==='pickup')?pkgTotal():0;
-  const total=sub+fee+pkg;
-  const det=document.getElementById('sumDetails');
-  const items=document.getElementById('sumItems');
+  const fee=otype==='delivery'?(dfee||0):0;
+  const pkg=(otype==='delivery'||otype==='pickup')?pkgTot():0;
+  const tot=sub+fee+pkg;
+  document.getElementById('cpBadge').textContent=cnt;
+  const listEl=document.getElementById('cpList');
+  const totsEl=document.getElementById('cpTots');
   if(!cart.length){
-    items.innerHTML='<div class="empty-msg"><i class="fas fa-shopping-bag"></i>No items yet.<br>Choose food from Step 1!</div>';
-    det.style.display='none';
+    listEl.innerHTML='<div class="cp-empty"><i class="fas fa-shopping-bag"></i><p>No items yet.<br>Add food from Step 1!</p></div>';
+    totsEl.style.display='none';
   } else {
-    items.innerHTML=cart.map(i=>`<div class="sum-item">
-      <span class="sum-name">${i.name} ×${i.qty}</span>
-      <span class="sum-price">${ugx(i.price*i.qty)}</span></div>`).join('');
-    document.getElementById('sumSub').textContent=ugx(sub);
-    document.getElementById('sumFee').textContent=orderType==='delivery'?ugx(fee):'Free';
-    document.getElementById('sumPkg').textContent=pkg>0?ugx(pkg):'None';
-    document.getElementById('sumTotal').textContent=ugx(total);
-    det.style.display='block';
+    listEl.innerHTML='<div class="cp-list">'+cart.map(i=>`<div class="ci"><span class="ci-n">${i.name}</span><span class="ci-q">×${i.qty}</span><span class="ci-p">${ugx(i.price*i.qty)}</span><button class="ci-x" onclick="rmItem(${i.id})">✕</button></div>`).join('')+'</div>';
+    totsEl.style.display='block';
+    document.getElementById('ctSub').textContent=ugx(sub);
+    document.getElementById('ctFee').textContent=otype==='delivery'?ugx(fee):'Free';
+    document.getElementById('ctPkg').textContent=ugx(pkg);
+    document.getElementById('ctTot').textContent=ugx(tot);
+  }
+  const mob=document.getElementById('mobBar');
+  mob.classList.toggle('on',cnt>0);
+  document.getElementById('mbCnt').textContent=cnt+(cnt===1?' item':' items');
+  document.getElementById('mbTot').textContent=ugx(tot);
+  // update step indicators
+  for(let n=1;n<=5;n++){
+    const el=document.getElementById('si'+n);
+    el.classList.remove('active','done');
+    if(cnt>0&&n===1)el.classList.add('done');
+    else if(n===1)el.classList.add('active');
   }
 }
-document.querySelectorAll('.pay-opt').forEach(el=>{
-  el.addEventListener('click',()=>{
-    document.querySelectorAll('.pay-opt').forEach(e=>e.classList.remove('sel'));
-    el.classList.add('sel');
-  });
-});
+
+function selP(lbl){document.querySelectorAll('.po').forEach(l=>l.classList.remove('sel'));lbl.classList.add('sel')}
+
+function save(){sessionStorage.setItem('mpombo_cart',JSON.stringify(cart))}
+
 function placeOrder(){
   const name=document.getElementById('custName').value.trim();
   const phone=document.getElementById('custPhone').value.trim();
-  if(!name||!phone){alert('Please enter your name and phone number.');return}
   if(!cart.length){alert('Please add at least one item.');return}
-  if(deliveryFee===null&&orderType==='delivery'){alert('Distance exceeds {{ settings.max_delivery_km_int }}km. Please contact us.');return}
-  const payMethod=document.querySelector('input[name="payment"]:checked').value;
-  const distance=parseFloat(document.getElementById('distance').value)||0;
-  fetch('/api/place-order',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      name,phone,
-      email:document.getElementById('custEmail').value,
+  if(!name||!phone){
+    document.getElementById('payStep').scrollIntoView({behavior:'smooth'});
+    alert('Please enter your name and phone number.');return
+  }
+  if(dfee===null&&otype==='delivery'){alert('Distance exceeds maximum range. Please contact us.');return}
+  const pay=document.querySelector('input[name="pay"]:checked').value;
+  const dist=parseFloat(document.getElementById('distance').value)||0;
+  const pkgList=[];
+  if(PKG.plate.q>0)pkgList.push({name:'Silverplate',qty:PKG.plate.q,price:1000});
+  if(PKG.sg.q>0)pkgList.push({name:'Small Juice Glass',qty:PKG.sg.q,price:1000});
+  if(PKG.bg.q>0)pkgList.push({name:'Big Juice Glass',qty:PKG.bg.q,price:2000});
+  fetch('/api/place-order',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,phone,email:document.getElementById('custEmail').value,
       notes:document.getElementById('custNotes').value,
       items:cart.map(i=>({id:i.id,name:i.name,price:i.price,quantity:i.qty})),
-      packaging:getPkgList(),
-      payment_method:payMethod,order_type:orderType,distance,
-      address:document.getElementById('address').value
-    })
-  })
-  .then(r=>r.json()).then(d=>{
+      payment_method:pay,order_type:otype,distance:dist,
+      address:document.getElementById('address').value,packaging:pkgList})
+  }).then(r=>r.json()).then(d=>{
     if(d.success){
-      document.getElementById('modalOrderNum').textContent=d.order_number;
-      document.getElementById('trackLink').href='/track';
+      document.getElementById('modalNum').textContent=d.order_number;
       document.getElementById('successModal').classList.add('open');
       sessionStorage.removeItem('mpombo_cart');cart=[];render();
+      document.querySelectorAll('.fi').forEach(f=>{
+        f.classList.remove('sel');
+        const id=f.id.replace('fi-','');
+        const mb=document.getElementById('mb-'+id),fn=document.getElementById('fn-'+id);
+        if(mb)mb.style.display='none';if(fn)fn.style.display='none';
+      });
     } else alert('Order failed: '+d.error);
   }).catch(e=>alert('Error: '+e));
 }
-function closeModal(){document.getElementById('successModal').classList.remove('open')}
 
-function scrollToPayment(){
-  document.getElementById('payStep').scrollIntoView({behavior:'smooth', block:'start'});
-  setTimeout(()=>{
-    // Show summary briefly
-    const summary = document.getElementById('mobileSummaryDrawer');
-    if(summary) summary.classList.add('open');
-  }, 600);
-}
-
-function updateMobileBar(){
-  const cnt = cart.reduce((s,i)=>s+i.qty, 0);
-  const sub = cart.reduce((s,i)=>s+i.price*i.qty, 0);
-  const fee = orderType==='delivery'?(deliveryFee||0):0;
-  const pkg = (orderType==='delivery'||orderType==='pickup')?pkgTotal():0;
-  const total = sub+fee+pkg;
-  const bar = document.getElementById('mobileCartBar');
-  const countEl = document.getElementById('mcbCount');
-  const totalEl = document.getElementById('mcbTotal');
-  if(bar) bar.classList.toggle('has-items', cnt>0);
-  if(countEl) countEl.textContent = cnt + (cnt===1?' item':' items');
-  if(totalEl) totalEl.textContent = ugx(total);
-}
+// Init
+cart.forEach(i=>updUI(i.id));
 setType('delivery');render();
 </script>
 {% endblock %}

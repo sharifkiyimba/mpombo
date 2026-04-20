@@ -13,13 +13,46 @@ app.secret_key = os.environ.get('SECRET_KEY', 'mpombo-uganda-secret-2024')
 # ── SQLite Database ───────────────────────────────────────
 DB_PATH = os.path.join(os.path.dirname(__file__), 'mpombo.db')
 
+class DbWrapper:
+    """Wraps sqlite3 connection so execute().fetchone() works like MySQL cursor."""
+    def __init__(self, conn):
+        self._conn = conn
+        self._cur = None
+
+    def execute(self, sql, params=()):
+        self._cur = self._conn.execute(sql, params)
+        return self
+
+    def executescript(self, sql):
+        self._conn.executescript(sql)
+        return self
+
+    def fetchone(self):
+        return self._cur.fetchone() if self._cur else None
+
+    def fetchall(self):
+        return self._cur.fetchall() if self._cur else []
+
+    @property
+    def lastrowid(self):
+        return self._cur.lastrowid if self._cur else None
+
+    def commit(self):
+        self._conn.commit()
+
+    def close(self):
+        self._conn.close()
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
 def get_db():
-    """Get a SQLite connection with row_factory for dict-like access."""
+    """Get a SQLite connection wrapper with row_factory for dict-like access."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+    return DbWrapper(conn)
 
 # ── Restaurant Config ─────────────────────────────────────
 class Config:
@@ -384,7 +417,7 @@ def get_order_cols():
     try:
         db = get_db(); cur = db
         cur.execute("DESCRIBE orders")
-        cols = [r['Field'] for r in cur.fetchall()]
+        cols = [r[1] for r in cur.fetchall()]
         db.close()
         return cols
     except:
@@ -640,7 +673,7 @@ def place_order():
             f"INSERT INTO orders ({col_list}) VALUES ({placeholders})",
             values
         )
-        order_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        order_id = db.lastrowid
 
         # ── If old schema uses customer_id, create/find a customers row ──
         if 'customer_id' in cols and 'customer_name' not in cols:
@@ -654,7 +687,7 @@ def place_order():
                         "INSERT INTO customers (name, phone, email) VALUES (?,?,?)",
                         (name, phone, email)
                     )
-                    cust_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+                    cust_id = db.lastrowid
                 cur.execute("UPDATE orders SET customer_id=? WHERE id=?", (cust_id, order_id))
             except:
                 pass  # customers table may not exist either — non-fatal
@@ -1343,6 +1376,7 @@ def delete_image():
 @app.route('/setup-db')
 def setup_db():
     try:
+        init_db()
         db = get_db(); cur = db
 
         cur.execute("""
@@ -1470,7 +1504,7 @@ def fix_db():
         fixes = []
 
         cur.execute("DESCRIBE orders")
-        cols = [r['Field'] for r in cur.fetchall()]
+        cols = [r[1] for r in cur.fetchall()]
 
         migrations = [
             ('customer_name',        "ALTER TABLE orders ADD COLUMN customer_name TEXT AFTER order_number"),
@@ -1492,8 +1526,8 @@ def fix_db():
 
         # Add item_name to order_items if missing
         try:
-            cur.execute("DESCRIBE order_items")
-            oi_cols = [r['Field'] for r in cur.fetchall()]
+            cur.execute("PRAGMA table_info(order_items)")
+            oi_cols = [r[1] for r in cur.fetchall()]
             if 'item_name' not in oi_cols:
                 cur.execute("ALTER TABLE order_items ADD COLUMN item_name TEXT AFTER menu_item_id")
                 fixes.append('+ order_items.item_name')
