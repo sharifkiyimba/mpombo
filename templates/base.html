@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>{% block title %}Mpombo Family Restaurant — Lyantonde, Uganda{% endblock %}</title>
   <meta name="description" content="Authentic Ugandan food in Lyantonde. Luwombo, Matoke, Nyama Choma, Rolex & more. Order delivery or reserve a table.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&family=Yeseva+One&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="/static/js/cart.js" defer></script>
   <style>
   /* ═══════════════════════════════════════════════
      MPOMBO DESIGN SYSTEM v2 — Refined & Readable
@@ -211,17 +212,34 @@
 
   @media(max-width:900px){
     .hamburger{display:flex}
-    .nav-links{position:fixed;top:72px;right:0;width:270px;
+    .nav-links{position:fixed;top:72px;right:0;width:260px;
       height:calc(100vh - 72px);background:rgba(18,10,5,.98);
       flex-direction:column;align-items:flex-start;
-      padding:32px 24px;gap:18px;
-      transform:translateX(100%);transition:transform .4s ease}
+      padding:28px 20px;gap:16px;
+      transform:translateX(100%);transition:transform .4s ease;
+      overflow-y:auto}
     .nav-links.open{transform:translateX(0)}
-    .nav-links a{font-size:13px}}
+    .nav-links a{font-size:14px;letter-spacing:.5px}}
   @media(max-width:700px){
-    .footer-grid{grid-template-columns:1fr;gap:28px}
-    .footer-bottom{flex-direction:column;text-align:center}
-    .form-row{grid-template-columns:1fr}}
+    .footer-grid{grid-template-columns:1fr;gap:24px}
+    .footer-bottom{flex-direction:column;text-align:center;gap:8px}
+    .form-row{grid-template-columns:1fr}
+    /* Global mobile layout fixes */
+    section,.section{padding:52px 4%!important}
+    .section-title{font-size:clamp(24px,6vw,36px)!important}
+    .btn{padding:12px 20px!important;font-size:12px!important}
+    h1{font-size:clamp(26px,7vw,48px)!important}
+    h2{font-size:clamp(20px,5vw,32px)!important}
+    p{font-size:14px!important}
+    /* Fix horizontal overflow on phones */
+    img{max-width:100%}
+    table{display:block;overflow-x:auto;white-space:nowrap}
+    .grid-3,.grid-4{grid-template-columns:1fr!important}
+    .grid-2{grid-template-columns:1fr!important}}
+  @media(max-width:400px){
+    .nav-brand-name{font-size:14px}
+    .kente{height:4px}
+    body{font-size:14px}}
   {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -342,5 +360,53 @@ function toggleNav(){document.getElementById('navLinks').classList.toggle('open'
 setTimeout(()=>{document.querySelectorAll('.flash').forEach(f=>f.remove())},6000);
 </script>
 {% block extra_js %}{% endblock %}
+<!-- ── Universal Floating Cart Bubble ───────────────────── -->
+<div id="cartBubble" style="
+  display:none;position:fixed;bottom:24px;left:24px;z-index:998;
+  background:var(--forest);color:white;border-radius:50px;
+  padding:12px 18px 12px 14px;box-shadow:0 6px 28px rgba(0,0,0,.28);
+  cursor:pointer;align-items:center;gap:10px;
+  text-decoration:none;transition:all .3s;
+  border:2px solid rgba(212,165,64,.3);
+" onclick="window.location.href='/order'" title="View cart">
+  <div style="position:relative;flex-shrink:0">
+    <i class="fas fa-shopping-bag" style="font-size:20px;color:var(--gold2)"></i>
+    <span id="bubbleCount" style="
+      position:absolute;top:-8px;right:-8px;
+      background:var(--clay);color:white;
+      width:18px;height:18px;border-radius:50%;
+      font-size:10px;font-weight:700;
+      display:flex;align-items:center;justify-content:center;
+    ">0</span>
+  </div>
+  <div>
+    <div style="font-size:10px;color:rgba(255,255,255,.6);letter-spacing:.5px">YOUR ORDER</div>
+    <div id="bubbleTotal" style="font-family:'Yeseva One',serif;font-size:16px;color:var(--gold2)">UGX 0</div>
+  </div>
+</div>
+<script>
+(function(){
+  function updateBubble(){
+    try{
+      const cart=JSON.parse(sessionStorage.getItem('mpombo_cart')||'[]');
+      const cnt=cart.reduce((s,i)=>s+(i.qty||0),0);
+      const tot=cart.reduce((s,i)=>s+(i.price||0)*(i.qty||0),0);
+      const b=document.getElementById('cartBubble');
+      const bc=document.getElementById('bubbleCount');
+      const bt=document.getElementById('bubbleTotal');
+      if(!b)return;
+      b.style.display=cnt>0?'flex':'none';
+      if(bc)bc.textContent=cnt;
+      if(bt)bt.textContent='UGX '+Math.round(tot).toLocaleString();
+    }catch(e){}
+  }
+  updateBubble();
+  // Listen for storage changes (when cart updated on another page)
+  window.addEventListener('storage',updateBubble);
+  // Also poll every second for same-page updates
+  setInterval(updateBubble,1000);
+  window.updateCartBubble=updateBubble;
+})();
+</script>
 </body>
 </html>

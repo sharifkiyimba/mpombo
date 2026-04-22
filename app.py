@@ -120,13 +120,14 @@ def get_settings():
 
 def save_setting(key, value):
     """Upsert a single setting into site_settings table."""
-    db = get_db()
-    db.execute(
+    import sqlite3 as _sqlite3
+    conn = _sqlite3.connect(DB_PATH)
+    conn.execute(
         "INSERT OR REPLACE INTO site_settings (setting_key, setting_value) VALUES (?,?)",
         (key, value)
     )
-    db.commit()
-    db.close()
+    conn.commit()
+    conn.close()
 
 def init_db():
     """Initialize SQLite database on first run."""
@@ -1189,14 +1190,9 @@ def settings_save_pin():
         if cur_pin != stored:
             db.close()
             return jsonify({'success': False, 'error': 'Current PIN is incorrect'})
-        # Save new PIN
-        cur.execute("""
-            INSERT INTO site_settings (setting_key, setting_value)
-            VALUES ('settings_pin', ?)
-            
-        """, (new_pin, new_pin))
-        db.commit()
+        # Save new PIN using save_setting helper
         db.close()
+        save_setting('settings_pin', new_pin)
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

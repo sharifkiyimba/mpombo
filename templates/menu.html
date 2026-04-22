@@ -193,6 +193,7 @@ function removeItem(id){
 function render(){
   const cnt=cart.reduce((s,i)=>s+i.qty,0);
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  if(typeof updateCartBubble==='function') updateCartBubble();
   const fab=document.getElementById('cartFab');
   fab.classList.toggle('visible',cnt>0);
   document.getElementById('cartCnt').textContent=cnt;
